@@ -1,0 +1,194 @@
+{
+  "id": "ch10",
+  "title": "파일 관리",
+  "summary": {
+    "oneLiner": "파일은 fopen 으로 열어 FILE* 를 얻고, 읽거나 쓴 뒤 반드시 fclose 로 닫는다.",
+    "bullets": [
+      "FILE *fp = fopen(\"경로\", \"모드\"); — 실패하면 NULL 이므로 반드시 검사한다.",
+      "모드: r 읽기, w 쓰기(기존 내용 삭제), a 이어쓰기. b 를 붙이면 이진 모드.",
+      "w 모드로 열면 파일 내용이 즉시 지워진다.",
+      "fprintf / fscanf 는 printf / scanf 와 서식이 같고 첫 인자만 FILE* 다.",
+      "fgets 는 개행 문자까지 읽어 들이므로 잘라내야 할 때가 많다.",
+      "EOF 판정은 feof 보다 읽기 함수의 반환값으로 하는 것이 안전하다.",
+      "fclose 를 빼먹으면 버퍼에 남은 내용이 파일에 기록되지 않을 수 있다."
+    ],
+    "keywords": [
+      { "term": "FILE 포인터", "desc": "열린 파일을 다루는 손잡이. fopen 이 돌려주고 모든 파일 함수의 첫 인자로 쓴다." },
+      { "term": "파일 모드", "desc": "r / w / a 와 + , b 조합으로 읽기·쓰기·이어쓰기와 텍스트·이진을 정한다." },
+      { "term": "EOF", "desc": "파일의 끝을 뜻하는 값(-1). fgetc, fscanf 등이 더 읽을 것이 없을 때 돌려준다." },
+      { "term": "버퍼링", "desc": "출력이 곧바로 디스크에 가지 않고 메모리에 모였다가 기록되는 것. fclose 나 fflush 로 내보낸다." },
+      { "term": "텍스트 모드 / 이진 모드", "desc": "텍스트 모드는 줄바꿈을 변환하고, 이진 모드는 바이트를 그대로 다룬다." },
+      { "term": "fseek / ftell", "desc": "파일 안의 읽기·쓰기 위치를 옮기고 확인하는 함수." }
+    ]
+  },
+  "preview": "여기까지가 커리큘럼의 마지막 단원입니다. 복습 큐와 오답노트로 앞 단원들을 다시 돌아보세요.",
+  "sections": [
+    {
+      "id": "10-1",
+      "title": "파일 열기와 닫기",
+      "body": [
+        { "type": "p", "text": "파일을 다루는 순서는 언제나 같다. **열고 → 읽거나 쓰고 → 닫는다.** `fopen` 은 성공하면 `FILE *` 를, 실패하면 `NULL` 을 돌려준다." },
+        { "type": "code", "lang": "c", "code": "#include <stdio.h>\n\nint main(void) {\n    FILE *fp = fopen(\"data.txt\", \"r\");\n    if (fp == NULL) {\n        printf(\"파일을 열 수 없습니다\\n\");\n        return 1;\n    }\n\n    /* ... 읽기 ... */\n\n    fclose(fp);\n    return 0;\n}", "caption": "기본 골격 — NULL 검사를 빼지 않는다" },
+        { "type": "tip", "tone": "trap", "text": "`fopen` 결과를 검사하지 않고 바로 쓰면, 파일이 없을 때 **NULL 을 역참조해 프로그램이 죽는다.** 경로 오타·권한 문제로 흔히 일어나므로 NULL 검사는 선택이 아니다." },
+        { "type": "table", "head": ["모드", "의미", "파일이 없으면"], "rows": [
+          ["\"r\"", "읽기 전용", "실패(NULL)"],
+          ["\"w\"", "쓰기 — 기존 내용 삭제", "새로 만든다"],
+          ["\"a\"", "이어쓰기 — 끝에 추가", "새로 만든다"],
+          ["\"r+\"", "읽기+쓰기", "실패(NULL)"],
+          ["\"w+\"", "읽기+쓰기, 내용 삭제", "새로 만든다"],
+          ["\"rb\", \"wb\"", "이진 모드", "r / w 와 같다"]
+        ] },
+        { "type": "tip", "tone": "trap", "text": "`\"w\"` 로 여는 순간 **기존 내용이 즉시 지워진다.** 읽으려던 파일을 실수로 `\"w\"` 로 열면 데이터가 사라진다. 덧붙이려면 `\"a\"` 를 쓴다." },
+        { "type": "tip", "tone": "info", "text": "`fclose` 는 버퍼에 남은 내용을 파일에 밀어넣고 자원을 반납한다. 빼먹으면 **쓴 내용이 파일에 없을 수 있다.** 프로그램이 끝날 때 정리되기는 하지만 비정상 종료 시에는 보장되지 않는다." },
+        { "type": "predict", "code": "FILE *fp = fopen(\"nofile.txt\", \"r\");\nprintf(\"%d\\n\", fp == NULL);", "answer": "1", "explain": "존재하지 않는 파일을 r 모드로 열면 fopen 이 NULL 을 반환하므로 비교 결과는 참(1)이다." }
+      ]
+    },
+    {
+      "id": "10-2",
+      "title": "서식을 이용한 읽기와 쓰기",
+      "body": [
+        { "type": "p", "text": "`fprintf` 와 `fscanf` 는 `printf` · `scanf` 와 **서식 문자열이 완전히 같고**, 첫 인자로 `FILE *` 를 받는 점만 다르다." },
+        { "type": "code", "lang": "c", "code": "FILE *fp = fopen(\"score.txt\", \"w\");\nif (fp == NULL) return 1;\n\nfprintf(fp, \"%s %d\\n\", \"홍길동\", 95);\nfprintf(fp, \"%s %d\\n\", \"김철수\", 88);\n\nfclose(fp);", "caption": "파일에 쓰기" },
+        { "type": "code", "lang": "c", "code": "FILE *fp = fopen(\"score.txt\", \"r\");\nif (fp == NULL) return 1;\n\nchar name[20];\nint score;\nwhile (fscanf(fp, \"%19s %d\", name, &score) == 2) {\n    printf(\"%s: %d\\n\", name, score);\n}\n\nfclose(fp);", "caption": "반환값으로 끝을 판단한다" },
+        { "type": "p", "text": "`fscanf` 는 **성공적으로 읽은 항목 수**를 돌려준다. 위처럼 기대한 개수와 비교하면 파일 끝과 형식 오류를 동시에 걸러낼 수 있다." },
+        { "type": "tip", "tone": "trap", "text": "`while (!feof(fp))` 로 반복하면 **마지막 줄이 두 번 처리된다.** `feof` 는 읽기를 시도해 실패한 *뒤에야* 참이 되기 때문이다. 항상 **읽기 함수의 반환값**으로 반복 조건을 만든다." },
+        { "type": "tip", "tone": "trap", "text": "`fscanf(fp, \"%s\", name)` 에 길이 제한을 두지 않으면 긴 단어가 배열을 넘쳐 흐른다. `%19s` 처럼 **배열 크기보다 1 작은 수**를 반드시 적는다(널 문자 자리)." },
+        { "type": "tip", "tone": "info", "text": "`stdin`, `stdout`, `stderr` 도 `FILE *` 다. `fprintf(stdout, ...)` 는 `printf(...)` 와 같고, 오류 메시지는 `fprintf(stderr, ...)` 로 보내는 것이 관례다." },
+        { "type": "predict", "code": "/* data.txt 에 \"10 20\" 이 들어 있다 */\nFILE *fp = fopen(\"data.txt\", \"r\");\nint a, b;\nint r = fscanf(fp, \"%d %d\", &a, &b);\nprintf(\"%d %d %d\\n\", a, b, r);\nfclose(fp);", "answer": "10 20 2", "explain": "두 정수를 성공적으로 읽었으므로 a=10, b=20 이고 fscanf 는 읽은 항목 수 2를 반환한다." }
+      ]
+    },
+    {
+      "id": "10-3",
+      "title": "줄 단위 · 문자 단위 입출력",
+      "body": [
+        { "type": "p", "text": "공백이 포함된 한 줄을 통째로 읽으려면 `fgets` 를 쓴다. `fscanf` 의 `%s` 는 공백에서 끊기기 때문이다." },
+        { "type": "code", "lang": "c", "code": "char line[100];\nFILE *fp = fopen(\"data.txt\", \"r\");\nif (fp == NULL) return 1;\n\nwhile (fgets(line, sizeof(line), fp) != NULL) {\n    printf(\"%s\", line);   /* line 에 이미 \\n 이 들어 있다 */\n}\nfclose(fp);", "caption": "한 줄씩 읽기" },
+        { "type": "tip", "tone": "trap", "text": "`fgets` 는 **개행 문자 `\\n` 까지 배열에 넣는다.** 그대로 비교하거나 출력하면 예상과 달라진다. 필요하면 `line[strcspn(line, \"\\n\")] = '\\0';` 로 잘라낸다." },
+        { "type": "p", "text": "문자 하나씩 다룰 때는 `fgetc` 와 `fputc` 를 쓴다. 파일 복사, 글자 수 세기 같은 작업에 쓰인다." },
+        { "type": "code", "lang": "c", "code": "int ch;                       /* char 가 아니라 int */\nwhile ((ch = fgetc(fp)) != EOF) {\n    fputc(ch, out);\n}", "caption": "파일 복사의 기본형" },
+        { "type": "tip", "tone": "trap", "text": "`fgetc` 의 결과를 **`char` 로 받으면 안 된다.** `EOF` 는 -1 인데 char 범위와 겹쳐, 값이 0xFF 인 바이트를 EOF 로 오해하거나 EOF 를 영영 만나지 못할 수 있다. 반드시 `int` 로 받는다." },
+        { "type": "list", "items": [
+          "`fgets(buf, size, fp)` — 한 줄 읽기. 실패·끝이면 NULL",
+          "`fputs(str, fp)` — 문자열 쓰기. 개행을 자동으로 붙이지 않는다",
+          "`fgetc(fp)` — 문자 하나 읽기. 끝이면 EOF",
+          "`fputc(ch, fp)` — 문자 하나 쓰기",
+          "`gets()` — **절대 쓰지 않는다.** 길이 검사가 없어 표준에서 삭제됐다"
+        ] },
+        { "type": "tip", "tone": "info", "text": "`fgets` 의 두 번째 인자에는 `sizeof(배열)` 을 그대로 넣으면 된다. 함수가 널 문자 자리를 알아서 남겨 두므로 `-1` 을 하지 않는다." },
+        { "type": "predict", "code": "#include <stdio.h>\n#include <string.h>\nint main(void) {\n    char line[10] = \"abc\\n\";\n    printf(\"%zu \", strlen(line));\n    line[strcspn(line, \"\\n\")] = '\\0';\n    printf(\"%zu\\n\", strlen(line));\n    return 0;\n}", "answer": "4 3", "explain": "개행 문자도 한 글자로 세어 처음엔 4다. strcspn 으로 개행 위치를 찾아 널 문자로 바꾸면 3이 된다." }
+      ]
+    },
+    {
+      "id": "10-4",
+      "title": "이진 파일과 구조체 저장",
+      "body": [
+        { "type": "p", "text": "텍스트 모드는 사람이 읽을 수 있는 형태로 변환해 저장한다. **이진 모드**는 메모리의 바이트를 **그대로** 기록한다. 구조체를 통째로 저장할 때 쓴다." },
+        { "type": "code", "lang": "c", "code": "typedef struct { char name[20]; int score; } Student;\n\nStudent s = {\"홍길동\", 95};\n\nFILE *fp = fopen(\"data.bin\", \"wb\");\nif (fp == NULL) return 1;\nfwrite(&s, sizeof(Student), 1, fp);   /* 주소, 한 개 크기, 개수, 파일 */\nfclose(fp);", "caption": "구조체 하나 저장" },
+        { "type": "code", "lang": "c", "code": "Student t;\nFILE *fp = fopen(\"data.bin\", \"rb\");\nif (fp == NULL) return 1;\nif (fread(&t, sizeof(Student), 1, fp) == 1) {\n    printf(\"%s %d\\n\", t.name, t.score);\n}\nfclose(fp);", "caption": "읽어 오기" },
+        { "type": "p", "text": "`fread` 와 `fwrite` 는 **처리한 항목 개수**를 돌려준다. 요청한 개수와 비교해 성공 여부를 판단한다. 배열이라면 개수 자리에 원소 수를 넣어 한 번에 처리할 수 있다." },
+        { "type": "code", "lang": "c", "code": "Student list[3];\nsize_t n = fread(list, sizeof(Student), 3, fp);\nprintf(\"%zu개 읽음\\n\", n);", "caption": "여러 개를 한 번에" },
+        { "type": "tip", "tone": "trap", "text": "이진 파일은 **패딩·바이트 순서·자료형 크기가 같은 환경에서만** 호환된다. 32비트에서 저장한 파일을 64비트에서 읽으면 깨질 수 있다. 다른 기기와 주고받을 자료는 텍스트 형식이 안전하다." },
+        { "type": "tip", "tone": "trap", "text": "구조체에 **포인터 멤버가 있으면 이진 저장이 무의미하다.** 저장되는 것은 주소값이고, 다시 실행하면 그 주소는 아무 의미가 없다. 가리키던 내용은 저장되지 않는다." },
+        { "type": "tip", "tone": "info", "text": "윈도우의 텍스트 모드는 `\\n` 을 `\\r\\n` 으로 바꿔 쓴다. 이진 데이터를 텍스트 모드로 다루면 이 변환 때문에 내용이 망가지므로 반드시 `\"rb\"` / `\"wb\"` 를 쓴다." },
+        { "type": "predict", "code": "/* Student 가 24바이트일 때 */\nsize_t n = fwrite(list, sizeof(Student), 3, fp);\nprintf(\"%zu\\n\", n);", "answer": "3", "explain": "fwrite 는 기록한 바이트 수가 아니라 항목 개수를 반환한다. 3개를 모두 썼다면 3이다." }
+      ]
+    },
+    {
+      "id": "10-5",
+      "title": "파일 위치와 오류 처리",
+      "body": [
+        { "type": "p", "text": "파일에는 다음에 읽거나 쓸 위치를 가리키는 **파일 위치 표시자**가 있다. `fseek` 로 옮기고 `ftell` 로 확인한다." },
+        { "type": "code", "lang": "c", "code": "fseek(fp, 0, SEEK_END);     /* 끝으로 */\nlong size = ftell(fp);      /* 현재 위치 = 파일 크기 */\nrewind(fp);                 /* 처음으로 (fseek(fp,0,SEEK_SET) 과 같다) */\nprintf(\"%ld 바이트\\n\", size);", "caption": "파일 크기 구하기" },
+        { "type": "table", "head": ["기준", "의미"], "rows": [
+          ["SEEK_SET", "파일 처음부터"],
+          ["SEEK_CUR", "현재 위치부터"],
+          ["SEEK_END", "파일 끝부터"]
+        ] },
+        { "type": "p", "text": "n번째 레코드로 바로 이동하는 것도 이진 파일에서는 간단하다. **크기가 일정하기 때문**이다." },
+        { "type": "code", "lang": "c", "code": "/* 3번째 학생(인덱스 2)만 읽기 */\nfseek(fp, 2 * sizeof(Student), SEEK_SET);\nfread(&s, sizeof(Student), 1, fp);", "caption": "임의 접근" },
+        { "type": "p", "text": "읽기가 끝났을 때 그것이 **파일 끝인지 오류인지** 구분하려면 `feof` 와 `ferror` 를 쓴다. 반복 조건이 아니라 **반복이 끝난 뒤 원인을 확인할 때** 쓰는 것이 올바른 용법이다." },
+        { "type": "code", "lang": "c", "code": "while (fgets(line, sizeof(line), fp) != NULL) {\n    /* 처리 */\n}\nif (ferror(fp)) printf(\"읽기 오류\\n\");\nelse if (feof(fp)) printf(\"정상 종료\\n\");", "caption": "끝난 이유를 나중에 확인" },
+        { "type": "tip", "tone": "trap", "text": "`feof` 를 **반복 조건으로 쓰면 안 된다.** 마지막 읽기가 실패한 뒤에야 참이 되므로 마지막 데이터가 한 번 더 처리된다. 반복은 읽기 함수의 반환값으로 제어한다." },
+        { "type": "tip", "tone": "info", "text": "화면 출력이 바로 보이지 않을 때는 `fflush(stdout)` 로 버퍼를 비운다. 디버깅용 printf 가 순서대로 안 보일 때 유용하다." },
+        { "type": "tip", "tone": "preview", "text": "여기까지가 이 커리큘럼의 마지막 단원이다. 복습 큐가 앞 단원의 오답을 정해진 간격으로 다시 꺼내 주니, 이제부터는 복습 화면을 중심으로 돌면 된다." },
+        { "type": "predict", "code": "/* 파일 크기가 100바이트일 때 */\nfseek(fp, 0, SEEK_END);\nprintf(\"%ld\\n\", ftell(fp));", "answer": "100", "explain": "파일 끝으로 위치를 옮긴 뒤 ftell 로 읽으면 처음부터의 바이트 수, 즉 파일 크기가 나온다." }
+      ]
+    }
+  ],
+  "quiz": [
+    { "id": "ch10-q1", "type": "mcq", "level": 1, "tags": ["fopen"],
+      "stem": "파일을 여는 함수는?", "code": null,
+      "choices": ["open", "fopen", "fread", "fscanf"], "answer": 1,
+      "explain": "표준 C에서 파일을 열 때는 fopen 을 쓰고 FILE * 를 돌려받는다." },
+    { "id": "ch10-q2", "type": "mcq", "level": 1, "tags": ["fopen", "실패"],
+      "stem": "fopen 이 파일을 열지 못하면 무엇을 반환하는가?", "code": null,
+      "choices": ["0", "-1", "NULL", "EOF"], "answer": 2,
+      "explain": "실패하면 NULL 을 반환한다. 반드시 검사한 뒤 사용해야 한다." },
+    { "id": "ch10-q3", "type": "ox", "level": 2, "tags": ["파일모드"],
+      "stem": "\"w\" 모드로 기존 파일을 열면 원래 내용이 지워진다.",
+      "answer": true,
+      "explain": "w 모드는 파일을 비우고 시작한다. 내용을 남기려면 a(이어쓰기) 를 써야 한다." },
+    { "id": "ch10-q4", "type": "mcq", "level": 2, "tags": ["파일모드"],
+      "stem": "기존 내용을 지우지 않고 파일 끝에 덧붙이려면?", "code": null,
+      "choices": ["\"r\"", "\"w\"", "\"a\"", "\"x\""], "answer": 2,
+      "explain": "a 모드는 항상 파일 끝에 쓴다. 파일이 없으면 새로 만든다." },
+    { "id": "ch10-q5", "type": "blank", "level": 1, "tags": ["fclose"],
+      "stem": "열었던 파일을 닫는 함수는 ______ 이다.",
+      "answer": ["fclose", "fclose()"],
+      "explain": "fclose 는 버퍼를 비우고 자원을 반납한다." },
+    { "id": "ch10-q6", "type": "mcq", "level": 2, "tags": ["fprintf"],
+      "stem": "파일에 서식을 맞춰 출력하는 함수는?", "code": null,
+      "choices": ["printf", "fprintf", "fputs", "fwrite"], "answer": 1,
+      "explain": "fprintf 는 printf 와 서식이 같고 첫 인자로 FILE* 를 받는다." },
+    { "id": "ch10-q7", "type": "ox", "level": 3, "tags": ["feof", "함정"],
+      "stem": "while (!feof(fp)) 는 파일을 끝까지 읽는 올바른 반복 조건이다.",
+      "answer": false,
+      "explain": "feof 는 읽기에 실패한 뒤에야 참이 되어 마지막 데이터가 한 번 더 처리된다. 읽기 함수의 반환값으로 제어해야 한다." },
+    { "id": "ch10-q8", "type": "mcq", "level": 3, "tags": ["fgetc", "EOF"],
+      "stem": "fgetc 의 반환값을 char 가 아니라 int 로 받아야 하는 이유는?", "code": null,
+      "choices": [
+        "char 는 파일에서 읽을 수 없어서",
+        "EOF(-1)와 정상 문자 값을 구분해야 해서",
+        "int 가 더 빨라서",
+        "printf 로 출력하려면 int 여야 해서"
+      ], "answer": 1,
+      "explain": "EOF 는 -1 이라 char 범위와 겹친다. int 로 받아야 파일 끝과 실제 문자를 구분할 수 있다." },
+    { "id": "ch10-q9", "type": "ox", "level": 2, "tags": ["fgets"],
+      "stem": "fgets 로 읽은 문자열에는 줄 끝의 개행 문자가 포함되어 있다.",
+      "answer": true,
+      "explain": "fgets 는 개행 문자까지 버퍼에 넣는다. 필요하면 직접 잘라내야 한다." },
+    { "id": "ch10-q10", "type": "mcq", "level": 3, "tags": ["fscanf", "버퍼오버런"],
+      "stem": "char name[20] 에 fscanf 로 안전하게 문자열을 읽는 서식은?", "code": null,
+      "choices": ["%s", "%20s", "%19s", "%c"], "answer": 2,
+      "explain": "널 문자 자리를 남겨야 하므로 배열 크기보다 1 작은 19를 지정한다." },
+    { "id": "ch10-q11", "type": "mcq", "level": 2, "tags": ["fwrite", "이진"],
+      "stem": "fwrite(&s, sizeof(Student), 1, fp) 에서 세 번째 인자 1 의 의미는?", "code": null,
+      "choices": ["파일 번호", "기록할 항목의 개수", "시작 위치", "성공 여부"], "answer": 1,
+      "explain": "fwrite(주소, 항목 하나의 크기, 항목 개수, 파일) 순서다." },
+    { "id": "ch10-q12", "type": "mcq", "level": 2, "tags": ["fread", "반환값"],
+      "stem": "fread 의 반환값은?", "code": null,
+      "choices": ["읽은 바이트 수", "읽은 항목 개수", "0 또는 1", "파일 크기"], "answer": 1,
+      "explain": "fread 와 fwrite 는 처리한 항목 개수를 반환한다. 바이트 수가 아니다." },
+    { "id": "ch10-q13", "type": "blank", "level": 2, "tags": ["fseek"],
+      "stem": "fseek 에서 파일의 끝을 기준으로 이동할 때 쓰는 상수는 ________ 이다.",
+      "answer": ["SEEK_END", "seek_end"],
+      "explain": "SEEK_SET(처음), SEEK_CUR(현재), SEEK_END(끝) 세 가지가 있다." },
+    { "id": "ch10-q14", "type": "output", "level": 3, "tags": ["fseek", "ftell"],
+      "stem": "파일 크기가 250바이트일 때 다음 코드의 출력은?", "code": "fseek(fp, 0, SEEK_END);\nprintf(\"%ld\\n\", ftell(fp));",
+      "choices": ["0", "1", "250", "-1"], "answer": 2,
+      "explain": "끝으로 이동한 뒤의 위치는 처음부터의 바이트 수, 즉 파일 크기다." },
+    { "id": "ch10-q15", "type": "ox", "level": 3, "tags": ["이진파일", "포인터"],
+      "stem": "포인터 멤버가 있는 구조체를 fwrite 로 저장하면 가리키던 내용까지 저장된다.",
+      "answer": false,
+      "explain": "저장되는 것은 주소값뿐이다. 다시 실행하면 그 주소는 아무 의미가 없다." },
+    { "id": "ch10-q16", "type": "mcq", "level": 3, "tags": ["이진모드"],
+      "stem": "이진 데이터를 다룰 때 \"rb\" / \"wb\" 를 써야 하는 이유는?", "code": null,
+      "choices": [
+        "속도가 빨라서",
+        "텍스트 모드는 줄바꿈 문자를 변환해 데이터를 망가뜨려서",
+        "파일 크기가 줄어서",
+        "이진 모드에서만 fseek 를 쓸 수 있어서"
+      ], "answer": 1,
+      "explain": "윈도우 텍스트 모드는 \\n 을 \\r\\n 으로 바꾼다. 이진 데이터에 이 변환이 적용되면 내용이 깨진다." }
+  ]
+}

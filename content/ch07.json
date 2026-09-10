@@ -1,0 +1,192 @@
+{
+  "id": "ch07",
+  "title": "함수",
+  "summary": {
+    "oneLiner": "함수는 이름 붙인 코드 묶음이며, C는 인자를 항상 값으로 복사해 넘기므로 호출한 쪽의 값을 바꾸려면 주소를 넘겨야 한다.",
+    "bullets": [
+      "반환형 이름(매개변수) { 본문 } 이 함수의 기본 꼴이다.",
+      "반환값이 없으면 void, 매개변수가 없으면 (void) 로 적는다.",
+      "C는 값 전달(call by value)만 한다. 인자는 복사본이다.",
+      "호출한 쪽의 변수를 바꾸려면 주소를 넘기고 함수 안에서 역참조한다.",
+      "배열은 이름이 주소로 바뀌어 넘어가므로 자동으로 원본이 바뀐다.",
+      "함수를 아래쪽에 정의했다면 위쪽에 원형(prototype)을 선언해야 한다.",
+      "재귀 함수에는 반드시 종료 조건이 있어야 한다."
+    ],
+    "keywords": [
+      { "term": "매개변수 / 인자", "desc": "정의 쪽에서 받는 변수가 매개변수, 호출 쪽에서 넘기는 값이 인자다." },
+      { "term": "함수 원형", "desc": "본문 없이 반환형·이름·매개변수 타입만 미리 알리는 선언. 헤더 파일에 둔다." },
+      { "term": "값 전달", "desc": "인자의 복사본이 넘어가는 방식. 함수 안에서 바꿔도 원본은 그대로다." },
+      { "term": "주소 전달", "desc": "값 대신 주소를 넘겨 함수 안에서 원본을 직접 고치는 방식." },
+      { "term": "재귀", "desc": "함수가 자기 자신을 호출하는 것. 종료 조건이 없으면 스택이 넘친다." },
+      { "term": "스택 오버플로", "desc": "호출이 너무 깊어져 함수 호출용 메모리가 바닥나는 상황." }
+    ]
+  },
+  "preview": "다음 단원(변수의 통용범위)에서는 함수 안의 변수가 언제 생겼다 언제 사라지는지, 어느 범위에서 보이는지를 다룹니다.",
+  "sections": [
+    {
+      "id": "7-1",
+      "title": "함수의 정의와 호출",
+      "body": [
+        { "type": "p", "text": "함수는 **반환형 · 이름 · 매개변수 목록 · 본문** 네 부분으로 이루어진다. 같은 일을 여러 곳에서 반복하지 않게 해 주고, 이름으로 의도를 드러낸다." },
+        { "type": "code", "lang": "c", "code": "#include <stdio.h>\n\nint add(int a, int b) {   /* 반환형 이름(매개변수) */\n    return a + b;\n}\n\nint main(void) {\n    int r = add(3, 4);    /* 호출 */\n    printf(\"%d\\n\", r);    /* 7 */\n    return 0;\n}", "caption": "가장 기본적인 함수" },
+        { "type": "p", "text": "돌려줄 값이 없으면 반환형에 `void` 를, 받을 값이 없으면 매개변수 자리에 `void` 를 적는다." },
+        { "type": "code", "lang": "c", "code": "void greet(void) {\n    printf(\"안녕하세요\\n\");\n    /* return; 은 생략 가능 */\n}", "caption": "값을 주고받지 않는 함수" },
+        { "type": "tip", "tone": "trap", "text": "매개변수가 없을 때 `int f()` 라고 비워 두면 옛 C에서는 '인자를 검사하지 말라'는 뜻이 된다. **`int f(void)`** 라고 명시해야 인자를 잘못 넘겼을 때 컴파일러가 잡아준다." },
+        { "type": "tip", "tone": "trap", "text": "`return` 을 만나면 함수는 **즉시 끝난다.** return 아래에 쓴 코드는 실행되지 않는다. 반환형이 void 가 아닌데 return 을 빠뜨리면 쓰레기값이 돌아온다." },
+        { "type": "predict", "code": "int f(int x) {\n    if (x > 0) return 1;\n    return -1;\n    printf(\"여기?\\n\");\n}\nint main(void) {\n    printf(\"%d\\n\", f(-5));\n    return 0;\n}", "answer": "-1", "explain": "x가 0 이하라 두 번째 return 이 실행되고 함수가 끝난다. 그 아래 printf 는 절대 실행되지 않는다." }
+      ]
+    },
+    {
+      "id": "7-2",
+      "title": "매개변수와 반환값",
+      "body": [
+        { "type": "p", "text": "**매개변수(parameter)** 는 정의 쪽에서 값을 받는 변수, **인자(argument)** 는 호출 쪽에서 실제로 넘기는 값이다. 개수와 순서가 정확히 맞아야 한다." },
+        { "type": "code", "lang": "c", "code": "double average(int a, int b, int c) {\n    return (a + b + c) / 3.0;   /* 3 이 아니라 3.0 */\n}\n\nprintf(\"%.2f\\n\", average(1, 2, 4));   /* 2.33 */", "caption": "반환형에 맞는 계산" },
+        { "type": "tip", "tone": "trap", "text": "반환형이 `double` 이어도 **함수 안에서 정수끼리 나누면** 이미 소수점이 날아간 뒤다. `(a+b+c) / 3` 으로 쓰면 2.00 이 나온다. 나누기 전에 실수로 만들어야 한다." },
+        { "type": "table", "head": ["상황", "반환형", "예"], "rows": [
+          ["계산 결과를 돌려줌", "int, double 등", "int add(int a, int b)"],
+          ["결과 없이 일만 함", "void", "void printLine(void)"],
+          ["성공/실패만 알림", "int (0 또는 -1)", "int save(const char *path)"],
+          ["여러 값을 돌려줌", "주소를 인자로 받음", "void divmod(int a, int b, int *q, int *r)"]
+        ] },
+        { "type": "p", "text": "C 함수는 **값을 하나만** 돌려줄 수 있다. 여러 결과가 필요하면 주소를 인자로 받아 그곳에 써 넣는다(다음 절)." },
+        { "type": "tip", "tone": "info", "text": "바꾸지 않을 포인터 매개변수에는 `const` 를 붙인다. `int sum(const int *arr, int n)` 처럼 쓰면 실수로 원본을 고치는 것을 컴파일러가 막아준다." },
+        { "type": "predict", "code": "double avg(int a, int b) {\n    return (a + b) / 2;\n}\nint main(void) {\n    printf(\"%.2f\\n\", avg(3, 4));\n    return 0;\n}", "answer": "3.00", "explain": "(3+4)/2 가 정수 나눗셈으로 3이 된 뒤 double 로 변환된다. (a+b)/2.0 으로 써야 3.50 이 나온다." }
+      ]
+    },
+    {
+      "id": "7-3",
+      "title": "값 전달과 주소 전달",
+      "body": [
+        { "type": "p", "text": "C는 **값 전달만 한다.** 함수에 넘어가는 것은 언제나 복사본이라, 함수 안에서 매개변수를 바꿔도 호출한 쪽의 변수는 그대로다." },
+        { "type": "code", "lang": "c", "code": "void tryChange(int x) {\n    x = 100;      /* 복사본만 바뀐다 */\n}\n\nint main(void) {\n    int a = 5;\n    tryChange(a);\n    printf(\"%d\\n\", a);   /* 5 — 바뀌지 않았다 */\n    return 0;\n}", "caption": "값 전달로는 원본을 못 바꾼다" },
+        { "type": "p", "text": "원본을 바꾸려면 **주소를 넘기고** 함수 안에서 역참조한다. `scanf(\"%d\", &n)` 에 `&` 를 붙이는 이유가 바로 이것이다." },
+        { "type": "code", "lang": "c", "code": "void change(int *x) {\n    *x = 100;     /* 가리키는 곳에 직접 쓴다 */\n}\n\nint main(void) {\n    int a = 5;\n    change(&a);           /* 주소를 넘긴다 */\n    printf(\"%d\\n\", a);    /* 100 */\n    return 0;\n}", "caption": "주소 전달로 원본 수정" },
+        { "type": "p", "text": "두 변수의 값을 맞바꾸는 `swap` 은 이 차이를 보여주는 고전적인 예다." },
+        { "type": "code", "lang": "c", "code": "void swap(int *a, int *b) {\n    int tmp = *a;\n    *a = *b;\n    *b = tmp;\n}\n\nint x = 1, y = 2;\nswap(&x, &y);\nprintf(\"%d %d\\n\", x, y);   /* 2 1 */", "caption": "포인터를 쓴 swap" },
+        { "type": "tip", "tone": "trap", "text": "`void swap(int a, int b)` 로 만들면 아무 일도 일어나지 않는다. 복사본끼리 바꾸고 함수가 끝나기 때문이다. **매개변수 타입에 `*` 가 있는지, 호출할 때 `&` 를 붙였는지** 둘 다 확인해야 한다." },
+        { "type": "tip", "tone": "trap", "text": "포인터 매개변수를 받았을 때 `x = ...` 과 `*x = ...` 는 완전히 다르다. 앞은 **포인터 복사본**이 다른 곳을 가리키게 만들 뿐이고, 뒤라야 원본이 바뀐다." },
+        { "type": "p", "text": "배열은 예외처럼 보이지만 규칙은 같다. 배열 이름이 **주소로 바뀌어** 넘어가므로 자동으로 주소 전달이 된다." },
+        { "type": "predict", "code": "void f(int x, int *y) {\n    x = 10;\n    *y = 20;\n}\nint main(void) {\n    int a = 1, b = 2;\n    f(a, &b);\n    printf(\"%d %d\\n\", a, b);\n    return 0;\n}", "answer": "1 20", "explain": "a는 값으로 넘어가 복사본만 바뀌고, b는 주소로 넘어가 원본이 바뀐다." }
+      ]
+    },
+    {
+      "id": "7-4",
+      "title": "함수 원형과 선언 위치",
+      "body": [
+        { "type": "p", "text": "C 컴파일러는 소스를 **위에서 아래로** 읽는다. 아직 보지 못한 함수를 호출하면 어떤 인자를 받는지 몰라 경고나 오류를 낸다." },
+        { "type": "code", "lang": "c", "code": "#include <stdio.h>\n\nint add(int a, int b);   /* 원형 선언 — 본문 없이 세미콜론 */\n\nint main(void) {\n    printf(\"%d\\n\", add(3, 4));   /* 아래에 정의돼 있어도 OK */\n    return 0;\n}\n\nint add(int a, int b) { return a + b; }", "caption": "원형을 위에 두면 순서가 자유롭다" },
+        { "type": "p", "text": "원형에는 매개변수 **이름을 생략해도** 된다. `int add(int, int);` 도 유효하다. 다만 이름이 있으면 읽는 사람에게 도움이 된다." },
+        { "type": "tip", "tone": "trap", "text": "원형 끝의 **세미콜론을 빠뜨리면** 다음에 오는 함수 정의와 붙어 버려 이해하기 어려운 에러가 난다." },
+        { "type": "tip", "tone": "info", "text": "여러 소스 파일에서 함께 쓰는 함수는 **헤더 파일(.h)에 원형만** 두고, 본문은 .c 파일에 둔다. 헤더에 본문을 넣으면 여러 번 포함될 때 중복 정의 에러가 난다." },
+        { "type": "code", "lang": "c", "code": "/* mymath.h */\n#ifndef MYMATH_H\n#define MYMATH_H\nint add(int a, int b);\n#endif\n\n/* mymath.c */\n#include \"mymath.h\"\nint add(int a, int b) { return a + b; }", "caption": "선언과 정의를 나눈다" },
+        { "type": "tip", "tone": "preview", "text": "여러 파일이 하나의 전역 변수를 공유할 때 쓰는 `extern` 은 **변수의 통용범위** 단원에서 다룬다." }
+      ]
+    },
+    {
+      "id": "7-5",
+      "title": "재귀 함수",
+      "body": [
+        { "type": "p", "text": "함수가 **자기 자신을 호출**하는 것을 재귀라고 한다. 문제를 같은 모양의 더 작은 문제로 줄일 수 있을 때 쓴다." },
+        { "type": "code", "lang": "c", "code": "int factorial(int n) {\n    if (n <= 1) return 1;        /* 종료 조건 */\n    return n * factorial(n - 1); /* 더 작은 문제로 */\n}\n\nprintf(\"%d\\n\", factorial(5));   /* 120 */", "caption": "팩토리얼" },
+        { "type": "p", "text": "재귀 함수에는 반드시 두 가지가 있어야 한다. **① 더 이상 쪼개지 않는 종료 조건**, **② 호출할 때마다 종료 조건에 가까워지는 변화**다." },
+        { "type": "table", "head": ["호출", "반환식", "값"], "rows": [
+          ["factorial(5)", "5 * factorial(4)", "120"],
+          ["factorial(4)", "4 * factorial(3)", "24"],
+          ["factorial(3)", "3 * factorial(2)", "6"],
+          ["factorial(2)", "2 * factorial(1)", "2"],
+          ["factorial(1)", "1 (종료 조건)", "1"]
+        ] },
+        { "type": "tip", "tone": "trap", "text": "종료 조건이 없거나 인자가 줄지 않으면 호출이 끝없이 쌓여 **스택 오버플로**로 프로그램이 죽는다. 재귀를 쓸 때는 종료 조건을 가장 먼저 적는 습관이 좋다." },
+        { "type": "tip", "tone": "info", "text": "호출마다 매개변수와 지역 변수를 담을 자리가 새로 생긴다. 그래서 재귀는 반복문보다 메모리를 많이 쓰고 느린 편이다. 깊이가 깊어질 수 있는 문제는 반복문으로 바꾸는 편이 안전하다." },
+        { "type": "list", "items": [
+          "재귀가 자연스러운 것 — 팩토리얼, 하노이 탑, 트리 순회, 분할 정복 정렬",
+          "반복문이 나은 것 — 단순 누적 합, 배열 순회, 깊이가 매우 깊어지는 계산",
+          "피보나치를 그대로 재귀로 쓰면 같은 계산을 수없이 반복해 매우 느리다"
+        ] },
+        { "type": "predict", "code": "int f(int n) {\n    if (n == 0) return 0;\n    return n + f(n - 1);\n}\nint main(void) {\n    printf(\"%d\\n\", f(4));\n    return 0;\n}", "answer": "10", "explain": "4 + 3 + 2 + 1 + 0 = 10 이다. n이 0이 되면 종료 조건에서 0을 돌려주고 쌓인 덧셈이 풀린다." }
+      ]
+    }
+  ],
+  "quiz": [
+    { "id": "ch07-q1", "type": "mcq", "level": 1, "tags": ["함수", "반환형"],
+      "stem": "값을 돌려주지 않는 함수의 반환형은?", "code": null,
+      "choices": ["int", "void", "null", "none"], "answer": 1,
+      "explain": "돌려줄 값이 없으면 void 를 쓴다." },
+    { "id": "ch07-q2", "type": "output", "level": 2, "tags": ["함수", "호출"],
+      "stem": "다음 코드의 출력은?", "code": "int twice(int x) { return x * 2; }\nint main(void) {\n    printf(\"%d\\n\", twice(twice(3)));\n    return 0;\n}",
+      "choices": ["6", "12", "9", "3"], "answer": 1,
+      "explain": "안쪽 twice(3) 이 6이 되고, 바깥에서 다시 2배가 되어 12다." },
+    { "id": "ch07-q3", "type": "ox", "level": 2, "tags": ["값전달"],
+      "stem": "C에서 함수에 int 변수를 넘기면 함수 안에서 그 값을 바꿔도 호출한 쪽의 변수는 바뀌지 않는다.",
+      "answer": true,
+      "explain": "C는 값 전달만 한다. 넘어가는 것은 복사본이다." },
+    { "id": "ch07-q4", "type": "output", "level": 2, "tags": ["값전달"],
+      "stem": "다음 코드의 출력은?", "code": "void f(int x) { x = 99; }\nint main(void) {\n    int a = 1;\n    f(a);\n    printf(\"%d\\n\", a);\n    return 0;\n}",
+      "choices": ["1", "99", "0", "쓰레기값"], "answer": 0,
+      "explain": "복사본만 바뀌므로 원본 a 는 그대로 1이다." },
+    { "id": "ch07-q5", "type": "output", "level": 2, "tags": ["주소전달"],
+      "stem": "다음 코드의 출력은?", "code": "void f(int *x) { *x = 99; }\nint main(void) {\n    int a = 1;\n    f(&a);\n    printf(\"%d\\n\", a);\n    return 0;\n}",
+      "choices": ["1", "99", "0", "컴파일 에러"], "answer": 1,
+      "explain": "주소를 넘겨 역참조로 원본에 직접 썼으므로 a 가 99가 된다." },
+    { "id": "ch07-q6", "type": "mcq", "level": 3, "tags": ["swap", "포인터"],
+      "stem": "두 변수의 값을 실제로 맞바꾸는 함수의 올바른 선언은?", "code": null,
+      "choices": [
+        "void swap(int a, int b)",
+        "void swap(int *a, int *b)",
+        "int swap(int a, int b)",
+        "void swap(int &a, int &b)"
+      ], "answer": 1,
+      "explain": "원본을 바꾸려면 주소를 받아야 한다. int &a 형태의 참조는 C가 아니라 C++ 문법이다." },
+    { "id": "ch07-q7", "type": "blank", "level": 2, "tags": ["주소전달"],
+      "stem": "void change(int *p) 를 변수 a 에 대해 호출하려면 change(__a); 라고 쓴다. (기호만 쓰시오)",
+      "answer": ["&"],
+      "explain": "포인터 매개변수에는 주소 연산자 & 로 얻은 주소를 넘긴다." },
+    { "id": "ch07-q8", "type": "ox", "level": 2, "tags": ["배열전달"],
+      "stem": "배열을 함수에 넘기면 함수 안에서 원소를 바꿔도 호출한 쪽 배열은 그대로다.",
+      "answer": false,
+      "explain": "배열 이름은 첫 원소의 주소로 바뀌어 넘어가므로 함수 안의 수정이 원본에 반영된다." },
+    { "id": "ch07-q9", "type": "mcq", "level": 2, "tags": ["함수원형"],
+      "stem": "함수 원형(prototype)을 선언하는 이유는?", "code": null,
+      "choices": [
+        "실행 속도를 높이려고",
+        "정의보다 먼저 호출해도 컴파일러가 인자와 반환형을 확인할 수 있게",
+        "메모리를 아끼려고",
+        "함수 본문을 생략하려고"
+      ], "answer": 1,
+      "explain": "컴파일러는 위에서 아래로 읽는다. 원형이 있으면 정의 위치와 상관없이 호출을 검사할 수 있다." },
+    { "id": "ch07-q10", "type": "blank", "level": 2, "tags": ["함수원형"],
+      "stem": "함수 원형은 본문 대신 ______ 하나로 끝난다. (기호 이름을 쓰시오)",
+      "answer": ["세미콜론", ";", "semicolon"],
+      "explain": "int add(int a, int b); 처럼 세미콜론으로 끝낸다." },
+    { "id": "ch07-q11", "type": "output", "level": 3, "tags": ["재귀"],
+      "stem": "다음 코드의 출력은?", "code": "int f(int n) {\n    if (n <= 1) return 1;\n    return n * f(n - 1);\n}\nint main(void) { printf(\"%d\\n\", f(4)); return 0; }",
+      "choices": ["10", "16", "24", "4"], "answer": 2,
+      "explain": "4 * 3 * 2 * 1 = 24 인 팩토리얼이다." },
+    { "id": "ch07-q12", "type": "mcq", "level": 3, "tags": ["재귀", "종료조건"],
+      "stem": "재귀 함수에 종료 조건이 없으면 생기는 문제는?", "code": null,
+      "choices": [
+        "컴파일 에러가 난다",
+        "호출이 끝없이 쌓여 스택 오버플로가 난다",
+        "0을 반환한다",
+        "자동으로 반복문으로 바뀐다"
+      ], "answer": 1,
+      "explain": "호출마다 스택에 자리가 쌓인다. 끝나지 않으면 스택이 바닥나 프로그램이 죽는다." },
+    { "id": "ch07-q13", "type": "output", "level": 3, "tags": ["return"],
+      "stem": "다음 코드의 출력은?", "code": "int f(void) {\n    return 1;\n    return 2;\n}\nint main(void) { printf(\"%d\\n\", f()); return 0; }",
+      "choices": ["1", "2", "3", "컴파일 에러"], "answer": 0,
+      "explain": "첫 return 에서 함수가 즉시 끝난다. 그 아래 코드는 실행되지 않는다." },
+    { "id": "ch07-q14", "type": "output", "level": 3, "tags": ["형변환", "반환값"],
+      "stem": "다음 코드의 출력은?", "code": "double half(int n) { return n / 2; }\nint main(void) { printf(\"%.1f\\n\", half(7)); return 0; }",
+      "choices": ["3.5", "3.0", "4.0", "0.0"], "answer": 1,
+      "explain": "함수 안에서 이미 정수 나눗셈으로 3이 된 뒤 double 로 변환된다. n / 2.0 으로 써야 3.5 다." },
+    { "id": "ch07-q15", "type": "mcq", "level": 2, "tags": ["함수", "void"],
+      "stem": "매개변수를 받지 않는 함수를 선언하는 권장 방식은?", "code": null,
+      "choices": ["int f()", "int f(void)", "int f(null)", "int f(0)"], "answer": 1,
+      "explain": "빈 괄호는 옛 C에서 '인자를 검사하지 말라'는 뜻이다. (void) 로 명시해야 잘못된 호출을 컴파일러가 잡는다." },
+    { "id": "ch07-q16", "type": "mcq", "level": 3, "tags": ["포인터매개변수", "함정"],
+      "stem": "void f(int *p) 안에서 호출한 쪽의 값을 바꾸려면?", "code": null,
+      "choices": ["p = 10;", "*p = 10;", "&p = 10;", "p[10];"], "answer": 1,
+      "explain": "p = 10 은 포인터 복사본이 다른 주소를 가리키게 할 뿐이다. *p = 10 이라야 가리키는 원본이 바뀐다." }
+  ]
+}

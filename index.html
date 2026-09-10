@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="light dark">
+  <meta name="theme-color" content="#2E6F52">
+  <title>C 학습</title>
+  <meta name="description" content="이동 중에 휴대폰으로 C언어를 학습하는 도구.">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="C 학습">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="./icons/icon-192.png" type="image/png">
+  <link rel="apple-touch-icon" href="./icons/icon-192.png">
+  <link rel="stylesheet" href="./css/style.css">
+</head>
+<body>
+  <a class="skip-link" href="#view">본문으로 건너뛰기</a>
+
+  <header class="app-header">
+    <button class="hdr-btn" id="btnBack" type="button" hidden aria-label="뒤로 가기">
+      <span aria-hidden="true">←</span>
+    </button>
+    <h1 class="app-header__title" id="appTitle">C 학습</h1>
+    <a class="hdr-btn" id="btnHome" href="#/" aria-label="홈으로">
+      <span aria-hidden="true">⌂</span>
+    </a>
+  </header>
+
+  <main id="view" class="view" tabindex="-1"></main>
+
+  <nav class="tabbar" id="tabbar" aria-label="주요 화면">
+    <a class="tabbar__item" href="#/review" data-route="review">
+      <span class="tabbar__icon" aria-hidden="true">↻</span>
+      <span class="tabbar__label">복습</span>
+      <span class="tabbar__badge" id="tabbarDue" hidden></span>
+    </a>
+    <a class="tabbar__item" href="#/wrong" data-route="wrong">
+      <span class="tabbar__icon" aria-hidden="true">✕</span>
+      <span class="tabbar__label">오답노트</span>
+    </a>
+    <a class="tabbar__item" href="#/glossary" data-route="glossary">
+      <span class="tabbar__icon" aria-hidden="true">≡</span>
+      <span class="tabbar__label">용어사전</span>
+    </a>
+  </nav>
+
+  <dialog class="sheet" id="sheet" aria-labelledby="sheetTitle">
+    <div class="sheet__inner">
+      <span class="sheet__grip" aria-hidden="true"></span>
+      <h2 class="sheet__title" id="sheetTitle"></h2>
+      <p class="sheet__desc" id="sheetDesc"></p>
+      <button class="btn sheet__close" id="sheetClose" type="button">닫기</button>
+    </div>
+  </dialog>
+
+  <script type="module" src="./js/app.js"></script>
+</body>
+</html>

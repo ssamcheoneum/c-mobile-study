@@ -1,0 +1,182 @@
+{
+  "id": "ch04",
+  "title": "반복문",
+  "summary": {
+    "oneLiner": "for / while / do-while 은 모두 같은 일을 하지만, 반복 횟수를 아는지 여부와 최소 1회 실행 여부에서 갈린다.",
+    "bullets": [
+      "for (초기식; 조건식; 증감식) — 횟수가 정해진 반복에 쓴다.",
+      "while (조건) — 횟수를 모르고 조건으로만 도는 반복에 쓴다.",
+      "do { } while (조건); — 조건을 나중에 검사하므로 최소 한 번은 실행된다. 세미콜론을 잊지 말 것.",
+      "break 는 반복문을 완전히 빠져나가고, continue 는 이번 회차만 건너뛴다.",
+      "중첩 반복문에서 break 는 안쪽 하나만 빠져나간다.",
+      "0부터 n 미만으로 도는 for (i = 0; i < n; i++) 가 배열과 짝이 맞는 표준 관용구다."
+    ],
+    "keywords": [
+      { "term": "반복 제어 변수", "desc": "반복 횟수를 세는 변수. 관례적으로 i, j, k 를 쓴다." },
+      { "term": "무한 루프", "desc": "조건이 항상 참이라 끝나지 않는 반복. for(;;) 또는 while(1) 로 일부러 만들기도 한다." },
+      { "term": "break", "desc": "가장 안쪽 반복문(또는 switch)을 즉시 빠져나간다." },
+      { "term": "continue", "desc": "이번 회차의 남은 부분을 건너뛰고 다음 반복으로 넘어간다." },
+      { "term": "off-by-one", "desc": "경계를 하나 더 돌거나 덜 도는 실수. < 와 <= 를 헷갈릴 때 생긴다." },
+      { "term": "중첩 반복문", "desc": "반복문 안에 반복문을 둔 것. 총 실행 횟수는 두 횟수의 곱이다." }
+    ]
+  },
+  "preview": "다음 단원(매크로)에서는 반복문 안에서 자주 쓰는 상수와 짧은 계산식을 #define 으로 이름 붙이는 방법을 다룹니다.",
+  "sections": [
+    {
+      "id": "4-1",
+      "title": "while 과 do-while",
+      "body": [
+        { "type": "p", "text": "`while` 은 조건이 참인 동안 블록을 반복한다. **조건을 먼저 검사**하므로 처음부터 거짓이면 한 번도 실행되지 않는다." },
+        { "type": "code", "lang": "c", "code": "int i = 1;\nwhile (i <= 5) {\n    printf(\"%d \", i);\n    i++;              /* 이걸 빠뜨리면 무한 루프 */\n}\nprintf(\"\\n\");         /* 1 2 3 4 5 */", "caption": "조건을 먼저 검사한다" },
+        { "type": "tip", "tone": "trap", "text": "`while` 안에서 **조건에 쓰인 변수를 바꾸는 문장을 빠뜨리면 무한 루프**가 된다. 반복문을 쓸 때는 '무엇이 조건을 거짓으로 만드는가'를 먼저 확인한다." },
+        { "type": "p", "text": "`do-while` 은 블록을 먼저 실행하고 **나중에 조건을 검사**한다. 그래서 조건과 무관하게 최소 한 번은 실행된다. 메뉴 입력처럼 '일단 한 번은 보여줘야 하는' 경우에 쓴다." },
+        { "type": "code", "lang": "c", "code": "int n = 100;\n\nwhile (n < 10) { printf(\"while\\n\"); }      /* 한 번도 실행 안 됨 */\n\ndo { printf(\"do-while\\n\"); } while (n < 10); /* 한 번은 실행됨 */", "caption": "조건이 처음부터 거짓일 때의 차이" },
+        { "type": "tip", "tone": "trap", "text": "`do { ... } while (조건)` 뒤의 **세미콜론을 빠뜨리면 컴파일 에러**다. while 문과 달리 do-while 은 문장이므로 세미콜론으로 끝나야 한다." },
+        { "type": "predict", "code": "int i = 10;\ndo {\n    printf(\"%d \", i);\n    i++;\n} while (i < 5);\nprintf(\"\\n\");", "answer": "10", "explain": "do-while 은 조건을 나중에 검사하므로 i가 이미 5보다 커도 본문이 한 번은 실행된다." }
+      ]
+    },
+    {
+      "id": "4-2",
+      "title": "for 문",
+      "body": [
+        { "type": "p", "text": "반복 횟수가 정해져 있으면 `for` 가 읽기 좋다. 초기식·조건식·증감식이 **한 줄에 모여 있어** 반복 구조가 한눈에 보인다." },
+        { "type": "code", "lang": "c", "code": "for (int i = 0; i < 5; i++) {\n    printf(\"%d \", i);\n}\nprintf(\"\\n\");   /* 0 1 2 3 4 */", "caption": "가장 흔한 형태" },
+        { "type": "table", "head": ["실행 순서", "부분", "언제"], "rows": [
+          ["1", "초기식", "맨 처음 한 번만"],
+          ["2", "조건식", "매 회차 시작 전"],
+          ["3", "본문", "조건이 참일 때"],
+          ["4", "증감식", "본문이 끝난 뒤"],
+          ["5", "2번으로", "조건이 거짓이 될 때까지"]
+        ] },
+        { "type": "p", "text": "`for (i = 0; i < n; i++)` 는 정확히 **n번** 돈다. 배열 인덱스가 0부터 n-1까지이므로 배열과 자연스럽게 맞아떨어진다." },
+        { "type": "tip", "tone": "trap", "text": "`i <= n` 으로 쓰면 n+1번 돈다. 배열에 쓰면 마지막에 범위를 벗어난 자리를 건드리게 된다(off-by-one). **`< n` 이 기본**이라고 외워두면 실수가 줄어든다." },
+        { "type": "list", "items": [
+          "`for (;;)` — 세 부분을 모두 비우면 무한 루프",
+          "`for (i = 10; i > 0; i--)` — 거꾸로 세기",
+          "`for (i = 0; i < n; i += 2)` — 2씩 건너뛰기",
+          "`for (i = 0, j = n-1; i < j; i++, j--)` — 두 변수를 양쪽에서"
+        ] },
+        { "type": "tip", "tone": "trap", "text": "`for (i = 0; i < 5; i++);` 처럼 괄호 뒤에 세미콜론을 찍으면 본문이 빈 문장이 된다. 아래 블록은 반복되지 않고 한 번만 실행된다." },
+        { "type": "predict", "code": "int sum = 0;\nfor (int i = 1; i <= 5; i++) {\n    sum += i;\n}\nprintf(\"%d\\n\", sum);", "answer": "15", "explain": "1부터 5까지 더하므로 1+2+3+4+5 = 15 다. 여기서는 <= 가 의도한 대로 5까지 포함한다." }
+      ]
+    },
+    {
+      "id": "4-3",
+      "title": "break 와 continue",
+      "body": [
+        { "type": "p", "text": "`break` 는 반복문을 **완전히 빠져나간다**. 찾는 것을 발견했을 때 더 돌 이유가 없으면 쓴다." },
+        { "type": "code", "lang": "c", "code": "int arr[5] = {3, 8, 1, 9, 4};\nint i, found = -1;\n\nfor (i = 0; i < 5; i++) {\n    if (arr[i] == 1) {\n        found = i;\n        break;        /* 찾았으니 그만 */\n    }\n}\nprintf(\"%d\\n\", found);   /* 2 */", "caption": "찾으면 즉시 중단" },
+        { "type": "p", "text": "`continue` 는 **이번 회차의 남은 부분만 건너뛰고** 다음 반복으로 간다. 반복문을 벗어나지는 않는다." },
+        { "type": "code", "lang": "c", "code": "for (int i = 1; i <= 10; i++) {\n    if (i % 2 != 0) continue;   /* 홀수는 건너뛴다 */\n    printf(\"%d \", i);\n}\nprintf(\"\\n\");   /* 2 4 6 8 10 */", "caption": "조건에 맞는 것만 처리" },
+        { "type": "tip", "tone": "trap", "text": "`while` 문에서 `continue` 를 쓸 때는 조심해야 한다. 증감식이 본문 아래쪽에 있으면 **건너뛰면서 증감도 건너뛰어** 무한 루프가 된다. for 문은 증감식이 따로 있어 이런 문제가 없다." },
+        { "type": "code", "lang": "c", "code": "int i = 0;\nwhile (i < 10) {\n    if (i % 2) continue;   /* i가 안 늘어나 무한 루프! */\n    printf(\"%d \", i);\n    i++;\n}", "caption": "이렇게 쓰면 멈추지 않는다" },
+        { "type": "tip", "tone": "info", "text": "`break` 는 `switch` 안에서도 쓰인다. 반복문 안의 switch 에서 `break` 를 쓰면 **switch 만** 빠져나가고 반복은 계속된다." },
+        { "type": "predict", "code": "int sum = 0;\nfor (int i = 1; i <= 10; i++) {\n    if (i == 5) break;\n    sum += i;\n}\nprintf(\"%d\\n\", sum);", "answer": "10", "explain": "i가 5가 되는 순간 더하지 않고 빠져나간다. 1+2+3+4 = 10 이다." }
+      ]
+    },
+    {
+      "id": "4-4",
+      "title": "중첩 반복문",
+      "body": [
+        { "type": "p", "text": "반복문 안에 반복문을 넣으면 **바깥이 한 번 돌 때 안쪽이 전부 돈다**. 총 실행 횟수는 두 횟수의 곱이다." },
+        { "type": "code", "lang": "c", "code": "for (int i = 1; i <= 3; i++) {\n    for (int j = 1; j <= 3; j++) {\n        printf(\"%d*%d=%d \", i, j, i * j);\n    }\n    printf(\"\\n\");\n}", "caption": "3 × 3 = 9번 실행된다" },
+        { "type": "p", "text": "삼각형 모양으로 출력하려면 안쪽 반복의 범위를 바깥 변수에 맞춘다." },
+        { "type": "code", "lang": "c", "code": "for (int i = 1; i <= 4; i++) {\n    for (int j = 0; j < i; j++) {\n        printf(\"*\");\n    }\n    printf(\"\\n\");\n}\n/* *\n   **\n   ***\n   **** */", "caption": "안쪽 범위를 i에 연동" },
+        { "type": "tip", "tone": "trap", "text": "중첩 반복문 안의 `break` 는 **안쪽 반복문 하나만** 빠져나간다. 바깥까지 한 번에 나가려면 플래그 변수를 쓰거나 함수로 분리해 `return` 하는 방법을 쓴다." },
+        { "type": "tip", "tone": "trap", "text": "바깥과 안쪽에서 **같은 변수 이름을 쓰면** 안쪽 반복이 바깥 카운터를 망가뜨려 무한 루프가 되기 쉽다. i, j 처럼 반드시 다른 이름을 쓴다." },
+        { "type": "tip", "tone": "preview", "text": "중첩 반복은 2차원 배열을 훑을 때 그대로 쓰인다. **배열과 포인터** 단원에서 `arr[i][j]` 와 함께 다시 나온다." },
+        { "type": "predict", "code": "int cnt = 0;\nfor (int i = 0; i < 3; i++)\n    for (int j = 0; j < 4; j++)\n        cnt++;\nprintf(\"%d\\n\", cnt);", "answer": "12", "explain": "바깥 3번 × 안쪽 4번 = 12번 실행된다." }
+      ]
+    },
+    {
+      "id": "4-5",
+      "title": "무한 루프와 흔한 실수",
+      "body": [
+        { "type": "p", "text": "조건이 영원히 참이면 반복문이 끝나지 않는다. 실수로 만드는 경우가 대부분이지만, **일부러** 만들고 `break` 로 빠져나가는 패턴도 흔하다." },
+        { "type": "code", "lang": "c", "code": "while (1) {\n    int cmd;\n    printf(\"명령(0=종료): \");\n    if (scanf(\"%d\", &cmd) != 1) break;\n    if (cmd == 0) break;\n    printf(\"처리: %d\\n\", cmd);\n}", "caption": "의도적인 무한 루프 + 탈출 조건" },
+        { "type": "list", "items": [
+          "조건 변수의 증감을 빠뜨림 — `while (i < 10) { ... }` 안에 `i++` 없음",
+          "증감 방향이 반대 — `for (i = 0; i < 10; i--)`",
+          "`continue` 가 증감을 건너뜀 — while 문에서 특히 위험",
+          "부동소수점을 반복 조건에 씀 — `for (double x = 0; x != 1.0; x += 0.1)` 은 오차 때문에 끝나지 않는다",
+          "`unsigned` 변수를 0 아래로 감소 — `for (unsigned i = 5; i >= 0; i--)` 는 0에서 매우 큰 수로 돌아간다"
+        ] },
+        { "type": "tip", "tone": "trap", "text": "`for (unsigned int i = n; i >= 0; i--)` 는 **끝나지 않는다.** unsigned 는 음수가 없어 0에서 1을 빼면 매우 큰 양수가 되기 때문이다. 거꾸로 셀 때는 int 를 쓰거나 조건을 `i > 0` 으로 바꾼다." },
+        { "type": "tip", "tone": "info", "text": "터미널에서 무한 루프에 빠졌다면 **Ctrl+C** 로 프로그램을 강제 종료한다." },
+        { "type": "predict", "code": "int i = 0;\nfor (; i < 3; ) {\n    printf(\"%d \", i);\n    i += 2;\n}\nprintf(\"\\n\");", "answer": "0 2", "explain": "for 의 초기식과 증감식은 비워도 된다. i는 0, 2 에서 출력되고 4가 되면 조건이 거짓이라 멈춘다." }
+      ]
+    }
+  ],
+  "quiz": [
+    { "id": "ch04-q1", "type": "mcq", "level": 1, "tags": ["do-while"],
+      "stem": "조건과 상관없이 본문이 최소 한 번은 실행되는 반복문은?", "code": null,
+      "choices": ["for", "while", "do-while", "switch"], "answer": 2,
+      "explain": "do-while 은 본문을 먼저 실행하고 나중에 조건을 검사한다." },
+    { "id": "ch04-q2", "type": "output", "level": 2, "tags": ["for"],
+      "stem": "다음 코드는 몇 번 반복하는가?", "code": "for (int i = 0; i < 5; i++) { }",
+      "choices": ["4번", "5번", "6번", "무한 반복"], "answer": 1,
+      "explain": "i가 0,1,2,3,4 일 때 실행되므로 5번이다." },
+    { "id": "ch04-q3", "type": "output", "level": 2, "tags": ["for", "합계"],
+      "stem": "다음 코드의 출력은?", "code": "int sum = 0;\nfor (int i = 1; i <= 4; i++) sum += i;\nprintf(\"%d\\n\", sum);",
+      "choices": ["4", "10", "15", "6"], "answer": 1,
+      "explain": "1+2+3+4 = 10 이다." },
+    { "id": "ch04-q4", "type": "ox", "level": 2, "tags": ["break", "continue"],
+      "stem": "continue 는 반복문을 완전히 빠져나간다.",
+      "answer": false,
+      "explain": "continue 는 이번 회차만 건너뛴다. 완전히 빠져나가는 것은 break 다." },
+    { "id": "ch04-q5", "type": "output", "level": 2, "tags": ["break"],
+      "stem": "다음 코드의 출력은?", "code": "for (int i = 1; i <= 5; i++) {\n    if (i == 3) break;\n    printf(\"%d\", i);\n}\nprintf(\"\\n\");",
+      "choices": ["12", "123", "1245", "12345"], "answer": 0,
+      "explain": "i가 3이 되는 순간 출력 없이 빠져나가므로 1과 2만 출력된다." },
+    { "id": "ch04-q6", "type": "output", "level": 2, "tags": ["continue"],
+      "stem": "다음 코드의 출력은?", "code": "for (int i = 1; i <= 5; i++) {\n    if (i == 3) continue;\n    printf(\"%d\", i);\n}\nprintf(\"\\n\");",
+      "choices": ["12", "1245", "12345", "45"], "answer": 1,
+      "explain": "i가 3일 때만 건너뛰고 나머지는 모두 출력되므로 1245 다." },
+    { "id": "ch04-q7", "type": "blank", "level": 1, "tags": ["break"],
+      "stem": "반복문을 즉시 빠져나가는 키워드는 ______ 이다.",
+      "answer": ["break"],
+      "explain": "break 는 가장 안쪽 반복문(또는 switch)을 즉시 종료한다." },
+    { "id": "ch04-q8", "type": "blank", "level": 2, "tags": ["무한루프"],
+      "stem": "for 문의 세 부분을 모두 비워 무한 루프를 만들면 for (__;__;__) 형태가 된다. 세미콜론 사이에 들어갈 것은? (없으면 '없음'이라고 쓰시오)",
+      "answer": ["없음", "none", "공백"],
+      "explain": "for(;;) 처럼 세 부분을 모두 비우면 조건이 참으로 간주되어 무한 루프가 된다." },
+    { "id": "ch04-q9", "type": "output", "level": 3, "tags": ["중첩반복문"],
+      "stem": "다음 코드의 출력은?", "code": "int c = 0;\nfor (int i = 0; i < 4; i++)\n    for (int j = 0; j < 5; j++)\n        c++;\nprintf(\"%d\\n\", c);",
+      "choices": ["9", "20", "25", "16"], "answer": 1,
+      "explain": "바깥 4번 × 안쪽 5번 = 20 이다." },
+    { "id": "ch04-q10", "type": "ox", "level": 3, "tags": ["중첩반복문", "break"],
+      "stem": "중첩 반복문 안쪽에서 break 를 쓰면 바깥 반복문까지 한 번에 빠져나온다.",
+      "answer": false,
+      "explain": "break 는 가장 안쪽 반복문 하나만 빠져나간다. 바깥까지 나가려면 플래그를 쓰거나 함수로 분리해 return 한다." },
+    { "id": "ch04-q11", "type": "mcq", "level": 3, "tags": ["무한루프", "함정"],
+      "stem": "다음 코드가 끝나지 않는 이유는?", "code": "for (unsigned int i = 5; i >= 0; i--) {\n    printf(\"%u \", i);\n}",
+      "choices": [
+        "i 를 출력하는 서식이 잘못됐다",
+        "unsigned 는 음수가 없어 i >= 0 이 항상 참이다",
+        "감소 연산자는 for 에 쓸 수 없다",
+        "초기값이 너무 작다"
+      ], "answer": 1,
+      "explain": "unsigned 는 0에서 1을 빼면 매우 큰 양수가 된다. 항상 0 이상이라 조건이 거짓이 되지 않는다." },
+    { "id": "ch04-q12", "type": "output", "level": 3, "tags": ["do-while"],
+      "stem": "다음 코드의 출력은?", "code": "int i = 7;\ndo {\n    printf(\"%d\", i);\n    i++;\n} while (i < 3);\nprintf(\"\\n\");",
+      "choices": ["아무것도 출력되지 않음", "7", "78", "무한 반복"], "answer": 1,
+      "explain": "do-while 은 조건을 나중에 검사하므로 한 번은 실행된다. 그 뒤 8 < 3 이 거짓이라 끝난다." },
+    { "id": "ch04-q13", "type": "output", "level": 3, "tags": ["for", "함정"],
+      "stem": "다음 코드의 출력은?", "code": "int i;\nfor (i = 0; i < 3; i++);\n    printf(\"%d\\n\", i);",
+      "choices": ["0\\n1\\n2", "3", "0", "무한 반복"], "answer": 1,
+      "explain": "for 괄호 뒤 세미콜론 때문에 본문이 빈 문장이다. 반복이 다 끝난 뒤 i는 3이고 printf 는 한 번만 실행된다." },
+    { "id": "ch04-q14", "type": "mcq", "level": 2, "tags": ["반복문선택"],
+      "stem": "배열 원소 n개를 처음부터 끝까지 훑을 때 가장 적절한 형태는?", "code": null,
+      "choices": [
+        "for (i = 0; i <= n; i++)",
+        "for (i = 0; i < n; i++)",
+        "for (i = 1; i <= n; i++)",
+        "for (i = 1; i < n; i++)"
+      ], "answer": 1,
+      "explain": "배열 인덱스는 0부터 n-1 이므로 i < n 이 정확히 맞아떨어진다. <= 를 쓰면 범위를 벗어난다." },
+    { "id": "ch04-q15", "type": "ox", "level": 2, "tags": ["do-while", "문법"],
+      "stem": "do { ... } while (조건) 뒤에는 세미콜론을 찍어야 한다.",
+      "answer": true,
+      "explain": "do-while 은 하나의 문장이므로 닫는 while 뒤에 세미콜론이 필요하다. 빠뜨리면 컴파일 에러다." }
+  ]
+}

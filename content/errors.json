@@ -1,0 +1,236 @@
+{
+  "version": "1.0",
+  "errors": [
+    {
+      "chId": "ch01",
+      "message": "warning: implicit declaration of function 'printf'",
+      "cause": "printf의 원형이 선언된 stdio.h를 포함하지 않았다.",
+      "fix": "파일 맨 위에 #include <stdio.h> 를 추가한다. 경고만 뜨고 실행되더라도 반드시 고친다."
+    },
+    {
+      "chId": "ch01",
+      "message": "warning: format '%d' expects argument of type 'int', but argument 2 has type 'double'",
+      "cause": "서식 지정자와 넘긴 값의 자료형이 어긋났다.",
+      "fix": "실수는 %f, 정수는 %d로 맞춘다. 값을 바꿀 수 없다면 (int)처럼 형변환한다."
+    },
+    {
+      "chId": "ch01",
+      "message": "warning: format '%d' expects argument of type 'int *', but argument 2 has type 'int'",
+      "cause": "scanf에 변수의 주소가 아니라 값을 넘겼다. & 를 빠뜨린 경우다.",
+      "fix": "scanf(\"%d\", &n) 처럼 & 를 붙인다. 단, 배열 이름은 그 자체가 주소라 & 를 붙이지 않는다."
+    },
+    {
+      "chId": "ch01",
+      "message": "Segmentation fault (core dumped)",
+      "cause": "실행 중 오류. scanf에서 & 를 빠뜨렸거나, 잘못된 주소에 값을 쓰려 했다.",
+      "fix": "scanf 인자에 & 가 빠졌는지 먼저 확인한다. 컴파일 경고를 무시하지 않는 것이 예방책이다."
+    },
+    {
+      "chId": "ch01",
+      "message": "error: expected ';' before '}' token",
+      "cause": "직전 문장 끝에 세미콜론이 없다.",
+      "fix": "에러가 난 줄이 아니라 그 바로 윗줄 끝을 확인한다."
+    },
+    {
+      "chId": "ch01",
+      "message": "error: stray '\\342' in program",
+      "cause": "한글 입력 상태에서 찍힌 전각 따옴표(“ ”)나 전각 공백이 코드에 섞였다.",
+      "fix": "따옴표와 괄호를 영문 자판으로 다시 입력한다. 웹에서 복사한 코드에서 자주 생긴다."
+    },
+    {
+      "chId": "ch01",
+      "message": "error: 'n' undeclared (first use in this function)",
+      "cause": "선언하지 않은 변수를 사용했거나, 변수 이름의 철자·대소문자가 다르다.",
+      "fix": "사용하기 전에 int n; 처럼 선언한다. C는 대소문자를 구분한다(n과 N은 다른 변수)."
+    },
+    {
+      "chId": "ch01",
+      "message": "undefined reference to `main'",
+      "cause": "main 함수가 없거나 이름을 잘못 적었다(Main, mian 등).",
+      "fix": "int main(void) { ... } 형태의 main 함수가 정확히 하나 있는지 확인한다."
+    },
+
+    {
+      "chId": "ch02",
+      "message": "error: invalid operands to binary % (have 'double' and 'int')",
+      "cause": "% 연산자를 실수에 사용했다.",
+      "fix": "% 는 정수 전용이다. 실수 나머지는 math.h 의 fmod(a, b) 를 쓴다."
+    },
+    {
+      "chId": "ch02",
+      "message": "warning: suggest parentheses around comparison in operand of '&'",
+      "cause": "a & 1 == 0 처럼 == 가 & 보다 먼저 계산되는 식을 썼다.",
+      "fix": "(a & 1) == 0 처럼 괄호로 의도를 명시한다."
+    },
+    {
+      "chId": "ch02",
+      "message": "warning: operation on 'i' may be undefined",
+      "cause": "i = i++ + ++i 처럼 한 식 안에서 같은 변수를 여러 번 변경했다.",
+      "fix": "증감을 별도 문장으로 분리한다. 결과가 컴파일러마다 다른 정의되지 않은 동작이다."
+    },
+
+    {
+      "chId": "ch03",
+      "message": "warning: suggest parentheses around assignment used as truth value",
+      "cause": "if (a = 5) 처럼 조건에 대입을 썼다.",
+      "fix": "비교라면 == 로 고친다. 정말 대입이 의도라면 if ((a = 5)) 로 괄호를 한 번 더 감싼다."
+    },
+    {
+      "chId": "ch03",
+      "message": "error: case label does not reduce to an integer constant",
+      "cause": "case 라벨에 변수나 실수를 썼다.",
+      "fix": "case 에는 컴파일 시점에 값이 정해지는 정수 상수만 올 수 있다. 범위 비교는 if-else 로 바꾼다."
+    },
+    {
+      "chId": "ch03",
+      "message": "warning: this 'if' clause does not guard...",
+      "cause": "중괄호 없는 if 뒤에 문장을 두 개 이상 두었다.",
+      "fix": "if 본문은 항상 중괄호로 감싼다. 들여쓰기는 컴파일러에게 아무 의미가 없다."
+    },
+
+    {
+      "chId": "ch04",
+      "message": "warning: comparison of unsigned expression >= 0 is always true",
+      "cause": "unsigned 변수를 i >= 0 조건으로 감소시켰다.",
+      "fix": "unsigned 는 음수가 없어 무한 루프가 된다. int 를 쓰거나 조건을 i > 0 으로 바꾼다."
+    },
+    {
+      "chId": "ch04",
+      "message": "warning: empty body in an 'if'/'for' statement",
+      "cause": "for(...) 나 if(...) 괄호 뒤에 세미콜론을 찍었다.",
+      "fix": "괄호 뒤 세미콜론을 지운다. 본문이 빈 문장이 되어 반복이 되지 않는다."
+    },
+
+    {
+      "chId": "ch05",
+      "message": "error: expected expression before ';' token",
+      "cause": "#define MAX 100; 처럼 매크로 끝에 세미콜론을 붙여 그것까지 치환됐다.",
+      "fix": "#define 줄에는 세미콜론과 = 를 쓰지 않는다."
+    },
+    {
+      "chId": "ch05",
+      "message": "error: redefinition of 'struct Point'",
+      "cause": "헤더 가드 없이 같은 헤더가 두 번 포함됐다.",
+      "fix": "헤더 맨 위에 #ifndef / #define, 맨 아래에 #endif 를 넣는다."
+    },
+    {
+      "chId": "ch05",
+      "message": "error: unterminated #ifndef / #endif without #if",
+      "cause": "#ifdef 나 #ifndef 에 대응하는 #endif 가 없거나 짝이 어긋났다.",
+      "fix": "#if 계열을 쓸 때 #endif 를 먼저 적어두고 사이를 채우는 습관을 들인다."
+    },
+
+    {
+      "chId": "ch06",
+      "message": "warning: assignment to 'int *' from 'int' makes pointer from integer without a cast",
+      "cause": "포인터에 주소가 아닌 값을 대입했다. int *p = n; 처럼 & 를 빠뜨린 경우다.",
+      "fix": "int *p = &n; 으로 고친다."
+    },
+    {
+      "chId": "ch06",
+      "message": "error: assignment to expression with array type",
+      "cause": "배열에 통째로 대입하려 했다(a = b;).",
+      "fix": "배열은 대입할 수 없다. 반복문이나 memcpy 로 원소를 복사한다. 문자열은 strcpy 를 쓴다."
+    },
+    {
+      "chId": "ch06",
+      "message": "warning: comparison with string literal results in unspecified behavior",
+      "cause": "문자열을 == 로 비교했다. 내용이 아니라 주소를 비교하게 된다.",
+      "fix": "strcmp(a, b) == 0 으로 비교한다. string.h 를 포함해야 한다."
+    },
+    {
+      "chId": "ch06",
+      "message": "*** stack smashing detected ***",
+      "cause": "배열 범위를 넘어 값을 썼다. 문자열에 널 문자 자리를 남기지 않은 경우가 많다.",
+      "fix": "인덱스 범위를 다시 확인하고, char 배열은 글자 수보다 1칸 크게 잡는다."
+    },
+
+    {
+      "chId": "ch07",
+      "message": "error: too few arguments to function 'add'",
+      "cause": "함수가 요구하는 인자 개수보다 적게 넘겼다.",
+      "fix": "원형과 호출의 인자 개수·순서를 맞춘다. 원형을 (void) 로 명시하면 이런 실수를 컴파일러가 잡아준다."
+    },
+    {
+      "chId": "ch07",
+      "message": "warning: control reaches end of non-void function",
+      "cause": "반환형이 void 가 아닌데 return 없이 함수가 끝나는 경로가 있다.",
+      "fix": "모든 분기에서 값을 반환하도록 고친다. 빠뜨리면 쓰레기값이 돌아온다."
+    },
+    {
+      "chId": "ch07",
+      "message": "warning: implicit declaration of function 'myFunc'",
+      "cause": "정의보다 먼저 호출했는데 원형 선언이 없다.",
+      "fix": "호출하는 곳보다 위에 int myFunc(int); 같은 원형을 선언하거나 헤더에 넣는다."
+    },
+
+    {
+      "chId": "ch08",
+      "message": "warning: function returns address of local variable",
+      "cause": "함수 안 지역 변수의 주소를 반환했다.",
+      "fix": "함수가 끝나면 그 자리는 사라진다. static 으로 선언하거나 malloc 으로 힙에 할당해 반환한다."
+    },
+    {
+      "chId": "ch08",
+      "message": "multiple definition of `g_value'",
+      "cause": "헤더에 extern 없이 전역 변수를 정의해 여러 .c 파일에 실체가 만들어졌다.",
+      "fix": "헤더에는 extern int g_value; 만 두고, 실체는 .c 파일 한 곳에만 둔다."
+    },
+    {
+      "chId": "ch08",
+      "message": "undefined reference to `g_value'",
+      "cause": "extern 선언만 있고 어느 .c 파일에도 정의가 없거나, 그 파일을 링크하지 않았다.",
+      "fix": "정의를 한 곳에 두고, 컴파일 명령에 해당 .c(또는 .o) 파일을 포함한다."
+    },
+    {
+      "chId": "ch08",
+      "message": "free(): double free or corruption",
+      "cause": "같은 포인터를 두 번 free 했거나, 할당받지 않은 주소를 free 했다.",
+      "fix": "free 직후 포인터에 NULL 을 대입한다. NULL 을 free 하는 것은 안전하다."
+    },
+
+    {
+      "chId": "ch09",
+      "message": "error: expected ';' after struct definition",
+      "cause": "구조체 정의의 닫는 중괄호 뒤에 세미콜론을 빠뜨렸다.",
+      "fix": "struct S { ... }; 처럼 세미콜론으로 끝낸다. 가장 흔한 구조체 실수다."
+    },
+    {
+      "chId": "ch09",
+      "message": "error: request for member 'x' in something not a structure or union",
+      "cause": "구조체 포인터에 점(.)을 썼거나, 구조체가 아닌 변수에 멤버 접근을 시도했다.",
+      "fix": "포인터에는 p->x 를 쓴다. *p.x 는 점이 먼저 계산되므로 (*p).x 로 괄호가 필요하다."
+    },
+    {
+      "chId": "ch09",
+      "message": "error: unknown type name 'Node'",
+      "cause": "typedef 별칭을 구조체 정의 안에서 사용했다. 별칭은 닫는 중괄호 뒤에야 생긴다.",
+      "fix": "typedef struct Node { ... struct Node *next; } Node; 처럼 태그 이름을 함께 적는다."
+    },
+
+    {
+      "chId": "ch10",
+      "message": "Segmentation fault — fopen 직후",
+      "cause": "fopen 이 NULL 을 반환했는데 검사 없이 사용했다. 경로 오타나 권한 문제다.",
+      "fix": "if (fp == NULL) 로 반드시 검사한 뒤 사용한다."
+    },
+    {
+      "chId": "ch10",
+      "message": "warning: comparison is always false due to limited range of data type",
+      "cause": "fgetc 의 결과를 char 변수에 받아 EOF(-1)와 비교했다.",
+      "fix": "int ch; 로 받아야 EOF 와 정상 문자를 구분할 수 있다."
+    },
+    {
+      "chId": "ch10",
+      "message": "파일에 쓴 내용이 비어 있음 (에러 메시지 없음)",
+      "cause": "fclose 를 호출하지 않아 버퍼에 남은 내용이 기록되지 않았다.",
+      "fix": "사용이 끝나면 반드시 fclose 를 호출한다. 중간 확인이 필요하면 fflush(fp) 를 쓴다."
+    },
+    {
+      "chId": "ch10",
+      "message": "마지막 줄이 두 번 출력됨 (에러 메시지 없음)",
+      "cause": "while (!feof(fp)) 를 반복 조건으로 썼다. feof 는 읽기 실패 후에야 참이 된다.",
+      "fix": "while (fgets(...) != NULL) 또는 while (fscanf(...) == n) 처럼 읽기 함수의 반환값으로 제어한다."
+    }
+  ]
+}

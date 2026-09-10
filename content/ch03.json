@@ -1,0 +1,159 @@
+{
+  "id": "ch03",
+  "title": "제어문",
+  "summary": {
+    "oneLiner": "if / else if / switch 로 조건에 따라 실행 경로를 갈라내며, C에서는 0만 거짓이고 나머지는 모두 참이다.",
+    "bullets": [
+      "if (조건) 문장; — 조건이 0이 아니면 실행한다.",
+      "중괄호를 생략하면 바로 다음 한 문장만 if에 묶인다.",
+      "else if 는 위에서부터 검사해 처음 참인 가지 하나만 실행한다.",
+      "else 는 가장 가까운 짝 없는 if 와 짝지어진다(dangling else).",
+      "switch 는 정수·문자만 다루고, break 가 없으면 다음 case로 흘러내린다.",
+      "조건 연산자 조건 ? A : B 는 짧은 if-else 를 한 줄로 쓴 것이다."
+    ],
+    "keywords": [
+      { "term": "참과 거짓", "desc": "C에는 별도 불린 타입이 없다. 0이 거짓, 0이 아닌 모든 값이 참이다." },
+      { "term": "블록", "desc": "중괄호 { } 로 묶은 문장 묶음. if·for 등에 여러 문장을 붙일 때 쓴다." },
+      { "term": "fall-through", "desc": "switch 에서 break 를 쓰지 않아 다음 case 로 실행이 이어지는 것." },
+      { "term": "dangling else", "desc": "if 가 중첩됐을 때 else 가 어느 if 에 붙는지 헷갈리는 상황. 항상 가장 가까운 if 에 붙는다." },
+      { "term": "조건 연산자", "desc": "조건 ? 참일때값 : 거짓일때값 형태의 삼항 연산자." },
+      { "term": "default", "desc": "switch 에서 어떤 case 에도 맞지 않을 때 실행되는 가지." }
+    ]
+  },
+  "preview": "다음 단원(반복문)에서는 같은 조건 검사를 여러 번 반복하며 흐름을 도는 for·while 을 다룹니다.",
+  "sections": [
+    {
+      "id": "3-1",
+      "title": "if 와 else",
+      "body": [
+        { "type": "p", "text": "`if` 는 괄호 안의 값이 **0이 아니면** 뒤의 문장을 실행한다. 참·거짓을 담는 별도의 타입이 없으므로 조건 자리에는 어떤 정수든 올 수 있다." },
+        { "type": "code", "lang": "c", "code": "int score = 75;\n\nif (score >= 60) {\n    printf(\"합격\\n\");\n} else {\n    printf(\"불합격\\n\");\n}", "caption": "기본 형태" },
+        { "type": "p", "text": "실행할 문장이 하나뿐이면 중괄호를 생략할 수 있다. 하지만 **생략하면 바로 다음 한 문장만** if에 묶인다." },
+        { "type": "code", "lang": "c", "code": "if (score >= 60)\n    printf(\"합격\\n\");\n    printf(\"축하합니다\\n\");   /* if 와 무관하게 항상 실행된다 */", "caption": "들여쓰기는 컴파일러에게 아무 의미가 없다" },
+        { "type": "tip", "tone": "trap", "text": "중괄호를 생략했다가 나중에 문장을 한 줄 더 추가하면 위 같은 버그가 생긴다. **문장이 하나여도 항상 중괄호를 쓰는 습관**이 안전하다." },
+        { "type": "tip", "tone": "trap", "text": "`if (a == 5);` 처럼 조건 뒤에 세미콜론을 찍으면 '아무것도 하지 않는 문장'이 if의 본문이 된다. 그 뒤 블록은 조건과 상관없이 실행된다. 컴파일 에러도 나지 않아 찾기 어렵다." },
+        { "type": "predict", "code": "int a = 0;\nif (a)\n    printf(\"참\\n\");\nelse\n    printf(\"거짓\\n\");", "answer": "거짓", "explain": "a가 0이므로 조건은 거짓이다. C에서는 0만 거짓이고 0이 아닌 값은 모두 참이다." }
+      ]
+    },
+    {
+      "id": "3-2",
+      "title": "else if 사슬과 중첩",
+      "body": [
+        { "type": "p", "text": "여러 갈래로 나눌 때는 `else if` 를 이어 붙인다. 위에서부터 검사해 **처음으로 참인 가지 하나만** 실행하고 나머지는 건너뛴다." },
+        { "type": "code", "lang": "c", "code": "int score = 85;\n\nif (score >= 90)      printf(\"A\\n\");\nelse if (score >= 80) printf(\"B\\n\");\nelse if (score >= 70) printf(\"C\\n\");\nelse                  printf(\"F\\n\");", "caption": "성적 구간 나누기" },
+        { "type": "tip", "tone": "trap", "text": "위 코드에서 조건 순서를 뒤집어 `score >= 70` 을 맨 위에 두면 85점도 C가 된다. **범위를 나눌 때는 좁은 조건(큰 값)부터** 적어야 한다." },
+        { "type": "p", "text": "`else if` 는 사실 새 문법이 아니라 else 뒤에 if 문 하나가 온 것뿐이다. 그래서 사슬 중 하나가 참이면 아래는 아예 검사하지 않는다." },
+        { "type": "p", "text": "if 안에 if 를 넣는 **중첩**도 가능하다. 이때 `else` 는 항상 **가장 가까운, 아직 짝이 없는 if** 와 짝지어진다." },
+        { "type": "code", "lang": "c", "code": "if (a > 0)\n    if (b > 0)\n        printf(\"둘 다 양수\\n\");\nelse\n    printf(\"???\\n\");   /* a>0 이 아니라 b>0 의 else 다 */", "caption": "들여쓰기에 속지 말 것" },
+        { "type": "tip", "tone": "info", "text": "중첩이 깊어지면 읽기 어렵다. 조건을 `&&` 로 합치거나, 예외 상황을 먼저 걸러내고 빠져나가는 방식으로 평평하게 만드는 편이 낫다." },
+        { "type": "predict", "code": "int n = 7;\nif (n > 10)      printf(\"큼\\n\");\nelse if (n > 5)  printf(\"중간\\n\");\nelse if (n > 0)  printf(\"작음\\n\");\nelse             printf(\"음수\\n\");", "answer": "중간", "explain": "n > 10 은 거짓, n > 5 는 참이라 '중간'만 출력하고 나머지 가지는 검사하지 않는다." }
+      ]
+    },
+    {
+      "id": "3-3",
+      "title": "switch 와 break",
+      "body": [
+        { "type": "p", "text": "값 하나를 여러 상수와 비교할 때는 `switch` 가 읽기 좋다. 단, **정수와 문자만** 쓸 수 있고 실수나 문자열에는 쓸 수 없다." },
+        { "type": "code", "lang": "c", "code": "int menu = 2;\n\nswitch (menu) {\n    case 1:\n        printf(\"입금\\n\");\n        break;\n    case 2:\n        printf(\"출금\\n\");\n        break;\n    default:\n        printf(\"잘못된 선택\\n\");\n        break;\n}", "caption": "case 마다 break 를 잊지 않는다" },
+        { "type": "tip", "tone": "trap", "text": "`break` 를 빠뜨리면 그 아래 case 들이 **줄줄이 실행된다**(fall-through). menu가 1인데 break 가 없으면 '입금'과 '출금'이 모두 찍힌다. 문법 오류가 아니라서 컴파일러가 알려주지 않는다." },
+        { "type": "p", "text": "반대로 fall-through를 **일부러** 쓰기도 한다. 여러 값을 같은 방식으로 처리할 때다." },
+        { "type": "code", "lang": "c", "code": "switch (ch) {\n    case 'a':\n    case 'e':\n    case 'i':\n    case 'o':\n    case 'u':\n        printf(\"모음\\n\");\n        break;\n    default:\n        printf(\"자음\\n\");\n        break;\n}", "caption": "의도적인 fall-through" },
+        { "type": "table", "head": ["항목", "if - else if", "switch"], "rows": [
+          ["조건 형태", "임의의 식(범위 비교 가능)", "값 == 상수 만"],
+          ["자료형", "제한 없음", "정수 · 문자"],
+          ["break", "필요 없음", "없으면 아래로 흘러내림"],
+          ["범위 비교", "가능", "불가능"]
+        ] },
+        { "type": "tip", "tone": "trap", "text": "`case` 라벨에는 **상수만** 올 수 있다. `case n:` 처럼 변수를 쓰거나 `case x > 5:` 처럼 조건을 쓰면 컴파일 에러다." },
+        { "type": "predict", "code": "int n = 1;\nswitch (n) {\n    case 1: printf(\"하나\\n\");\n    case 2: printf(\"둘\\n\"); break;\n    default: printf(\"기타\\n\");\n}", "answer": "하나\n둘", "explain": "case 1 에 break 가 없어 case 2 로 흘러내린다. case 2 의 break 에서 멈추므로 '기타'는 출력되지 않는다." }
+      ]
+    },
+    {
+      "id": "3-4",
+      "title": "조건 연산자와 흔한 함정",
+      "body": [
+        { "type": "p", "text": "간단한 if-else 는 `조건 ? A : B` 한 줄로 줄일 수 있다. 조건이 참이면 A, 거짓이면 B가 **식의 값**이 된다." },
+        { "type": "code", "lang": "c", "code": "int a = 3, b = 7;\n\nint max = (a > b) ? a : b;\nprintf(\"%d\\n\", max);          /* 7 */\nprintf(\"%s\\n\", (a % 2) ? \"홀수\" : \"짝수\");", "caption": "값을 고르는 용도로 쓴다" },
+        { "type": "tip", "tone": "info", "text": "조건 연산자는 **값을 고를 때**만 쓴다. 안에서 여러 일을 처리해야 한다면 그냥 if-else 로 쓰는 편이 읽기 쉽다." },
+        { "type": "list", "items": [
+          "`if (a = 5)` — 대입이라 항상 참. `==` 를 써야 한다",
+          "`if (a == 5);` — 세미콜론 때문에 본문이 빈 문장이 된다",
+          "`if (0 < a < 10)` — 항상 참. `&&` 로 이어야 한다",
+          "중괄호 없는 if 뒤에 문장 두 개를 붙이는 것",
+          "switch 에서 `break` 누락"
+        ] },
+        { "type": "tip", "tone": "trap", "text": "실수 비교에 `==` 를 쓰면 안 된다. `0.1 + 0.2 == 0.3` 은 **거짓**이다. 부동소수점 오차 때문에 `fabs(a - b) < 1e-9` 처럼 차이가 충분히 작은지로 판단한다." },
+        { "type": "tip", "tone": "preview", "text": "조건에 쓰이는 값이 포인터일 때는 `if (p)` 가 'p가 NULL이 아니면'이라는 뜻이 된다. **배열과 포인터** 단원에서 다시 만난다." },
+        { "type": "predict", "code": "int a = 5;\nif (a = 0)\n    printf(\"참\\n\");\nelse\n    printf(\"거짓\\n\");\nprintf(\"%d\\n\", a);", "answer": "거짓\n0", "explain": "a = 0 은 비교가 아니라 대입이다. a에 0이 들어가고 식의 값도 0(거짓)이라 else 가 실행되며, a는 0으로 바뀐다." }
+      ]
+    }
+  ],
+  "quiz": [
+    { "id": "ch03-q1", "type": "ox", "level": 1, "tags": ["참거짓"],
+      "stem": "C에서 조건식의 값이 0이면 거짓, 0이 아니면 참이다.",
+      "answer": true,
+      "explain": "C에는 별도의 불린 타입이 없다. 0만 거짓이고 -1, 2 같은 값은 모두 참이다." },
+    { "id": "ch03-q2", "type": "mcq", "level": 2, "tags": ["비교", "함정"],
+      "stem": "다음 코드에서 잘못된 부분은?", "code": "if (score = 100)\n    printf(\"만점\\n\");",
+      "choices": ["score 를 double 로 선언해야 한다", "= 가 아니라 == 를 써야 한다", "중괄호가 반드시 필요하다", "잘못된 부분이 없다"],
+      "answer": 1,
+      "explain": "= 는 대입이라 score 에 100을 넣고 100(참)이 되어 조건이 항상 참이다. 비교는 == 다." },
+    { "id": "ch03-q3", "type": "output", "level": 2, "tags": ["if", "함정"],
+      "stem": "다음 코드의 출력은?", "code": "int a = 3;\nif (a > 5);\n    printf(\"큼\\n\");",
+      "choices": ["아무것도 출력되지 않음", "큼", "컴파일 에러", "무한 반복"],
+      "answer": 1,
+      "explain": "조건 뒤 세미콜론이 if 의 본문이 되어 버려, printf 는 조건과 무관하게 항상 실행된다." },
+    { "id": "ch03-q4", "type": "output", "level": 2, "tags": ["else if"],
+      "stem": "다음 코드의 출력은?", "code": "int n = 95;\nif (n >= 70) printf(\"C\\n\");\nelse if (n >= 80) printf(\"B\\n\");\nelse if (n >= 90) printf(\"A\\n\");",
+      "choices": ["A", "B", "C", "A B C"],
+      "answer": 2,
+      "explain": "else if 는 위에서부터 처음 참인 가지 하나만 실행한다. n >= 70 이 먼저 참이 되므로 C가 출력된다. 범위는 큰 값부터 검사해야 한다." },
+    { "id": "ch03-q5", "type": "mcq", "level": 2, "tags": ["switch"],
+      "stem": "switch 문의 조건으로 사용할 수 없는 것은?", "code": null,
+      "choices": ["int 변수", "char 변수", "double 변수", "정수 상수식"],
+      "answer": 2,
+      "explain": "switch 는 정수형(문자 포함)만 다룰 수 있다. 실수와 문자열은 쓸 수 없다." },
+    { "id": "ch03-q6", "type": "output", "level": 3, "tags": ["switch", "fallthrough"],
+      "stem": "다음 코드의 출력은?", "code": "int n = 2;\nswitch (n) {\n    case 1: printf(\"A\");\n    case 2: printf(\"B\");\n    case 3: printf(\"C\"); break;\n    default: printf(\"D\");\n}\nprintf(\"\\n\");",
+      "choices": ["B", "BC", "BCD", "ABC"],
+      "answer": 1,
+      "explain": "case 2 부터 시작해 break 가 없어 case 3 으로 흘러내린다. case 3 의 break 에서 멈추므로 BC 다." },
+    { "id": "ch03-q7", "type": "blank", "level": 1, "tags": ["switch"],
+      "stem": "switch 문에서 어떤 case 에도 맞지 않을 때 실행되는 가지의 키워드는 ______ 이다.",
+      "answer": ["default"],
+      "explain": "default 는 어떤 case 와도 일치하지 않을 때 실행된다." },
+    { "id": "ch03-q8", "type": "blank", "level": 2, "tags": ["switch", "break"],
+      "stem": "switch 의 각 case 끝에서 다음 case 로 흘러내리는 것을 막는 키워드는 ______ 이다.",
+      "answer": ["break"],
+      "explain": "break 를 만나면 switch 블록을 빠져나간다." },
+    { "id": "ch03-q9", "type": "output", "level": 2, "tags": ["조건연산자"],
+      "stem": "다음 코드의 출력은?", "code": "int a = 4;\nprintf(\"%s\\n\", (a % 2 == 0) ? \"짝수\" : \"홀수\");",
+      "choices": ["짝수", "홀수", "1", "0"],
+      "answer": 0,
+      "explain": "4 % 2 는 0이고 0 == 0 이 참이므로 콜론 앞의 값이 선택된다." },
+    { "id": "ch03-q10", "type": "ox", "level": 3, "tags": ["실수비교", "함정"],
+      "stem": "실수를 비교할 때 0.1 + 0.2 == 0.3 은 참이다.",
+      "answer": false,
+      "explain": "부동소수점 오차 때문에 정확히 같지 않다. fabs(a - b) < 1e-9 처럼 차이가 충분히 작은지로 판단해야 한다." },
+    { "id": "ch03-q11", "type": "output", "level": 3, "tags": ["if", "중괄호"],
+      "stem": "다음 코드의 출력은?", "code": "int a = 1;\nif (a > 10)\n    printf(\"X\\n\");\n    printf(\"Y\\n\");",
+      "choices": ["아무것도 출력되지 않음", "Y", "X Y", "컴파일 에러"],
+      "answer": 1,
+      "explain": "중괄호가 없어 if 에는 첫 printf 만 묶인다. 두 번째 printf 는 들여쓰기와 무관하게 항상 실행된다." },
+    { "id": "ch03-q12", "type": "mcq", "level": 3, "tags": ["중첩if", "danglingelse"],
+      "stem": "중첩된 if 문에서 else 는 어느 if 와 짝지어지는가?", "code": null,
+      "choices": ["가장 바깥쪽 if", "들여쓰기가 같은 if", "가장 가까운, 아직 짝이 없는 if", "컴파일러마다 다르다"],
+      "answer": 2,
+      "explain": "else 는 항상 가장 가까운 짝 없는 if 에 붙는다. 들여쓰기는 영향을 주지 않으므로 중괄호로 명시하는 편이 안전하다." },
+    { "id": "ch03-q13", "type": "output", "level": 2, "tags": ["논리연산자"],
+      "stem": "다음 코드의 출력은?", "code": "int a = 5;\nif (a > 0 && a < 10)\n    printf(\"범위 안\\n\");\nelse\n    printf(\"범위 밖\\n\");",
+      "choices": ["범위 안", "범위 밖", "1", "컴파일 에러"],
+      "answer": 0,
+      "explain": "두 조건이 모두 참이므로 && 결과가 참이다." },
+    { "id": "ch03-q14", "type": "mcq", "level": 2, "tags": ["switch", "case"],
+      "stem": "case 라벨에 올 수 없는 것은?", "code": null,
+      "choices": ["1", "'A'", "10 + 5", "n (변수)"],
+      "answer": 3,
+      "explain": "case 라벨에는 컴파일 시점에 값이 정해지는 상수식만 올 수 있다. 변수는 쓸 수 없다." }
+  ]
+}
