@@ -40,6 +40,21 @@ node tools/validate.js
 중복 `qid`·섹션 id, `tip.tone` 오탈자, 표의 열 수 불일치,
 `status:"ready"` 인데 내용이 빈 단원.
 
+### 코드 정답 실행 검증
+
+`predict` 블록과 `output` 문항에 적힌 "출력 결과"를 **실제로 컴파일·실행해** 대조한다.
+
+```bash
+node tools/verify-c.js
+```
+
+`gcc` / `clang` / Visual Studio(`cl.exe`) 중 찾은 것을 쓴다. 하나도 없으면 종료 코드 2.
+불일치가 있으면 종료 코드 1. 상세 결과가 필요하면 `--report FILE`, 단원 하나만 보려면 `--only ch06`.
+
+조각 코드라 그대로 실행할 수 없는 문항(파일이 필요하거나 가상의 주소를 전제하는 등)은
+`tools/verify-fixtures.json` 에 보조 장치를 둔다. **콘텐츠(`content/*.json`)는 건드리지 않는다.**
+픽스처가 없어 실행에 실패한 문항은 조용히 넘어가지 않고 실패로 드러난다.
+
 PWA 아이콘을 다시 만들려면 `python tools/make-icons.py`.
 
 ## 배포 (GitHub Pages)
@@ -101,7 +116,8 @@ tools/                  validate.js (스키마 검증), make-icons.py (아이콘
 10단원 전부 `ready`. 섹션 49개 · 블록 397개 · 퀴즈 158문항 ·
 "자주 하는 실수" 팁 72개 · 용어 53개 · 컴파일 에러 사전 37개.
 
-콘텐츠를 고친 뒤에는 `node tools/validate.js` 를 반드시 돌린다.
+콘텐츠를 고친 뒤에는 `node tools/validate.js` 와 `node tools/verify-c.js` 를 반드시 돌린다.
+출력 결과가 적힌 문항 98건(predict 45 + output 53)은 전부 실행으로 검증된 상태다.
 
 ## 진행 상황
 

@@ -1,0 +1,60 @@
+{
+  "_readme": [
+    "verify-c.js 가 실행만으로는 판정할 수 없는 문항에 붙이는 보조 장치.",
+    "콘텐츠(content/*.json)는 건드리지 않고 여기에만 둔다. §3 스키마 불변.",
+    "",
+    "필드:",
+    "  note    왜 보조 장치가 필요한지 (필수)",
+    "  files   실행 전에 만들 파일. 문자열이거나 {\"size\":N,\"byte\":\"x\"}",
+    "  prepend 코드 조각 앞에 넣을 문장",
+    "  append  코드 조각 뒤에 넣을 문장 (보통 검증용 printf)",
+    "  program 소스 전체를 대체 (조각을 그대로 못 쓸 때)",
+    "  expect  기대 출력 재정의 (콘텐츠의 정답이 문장형일 때)",
+    "  waive   실행 검증이 원리적으로 불가능한 경우의 사유. 이때만 MANUAL 로 넘어간다"
+  ],
+  "ch06-q9": {
+    "note": "가상의 주소(p == 0x1000)를 전제한 산술 문제라 코드 자체에는 출력이 없다. 포인터에 2를 더할 때 실제로 몇 바이트 움직이는지를 측정해 0x1000에 더한다.",
+    "append": "printf(\"0x%lX\\n\", 0x1000UL + (unsigned long)((char*)(p + 2) - (char*)p));"
+  },
+  "ch09-q12": {
+    "note": "struct 정의만 있고 출력이 없다. 질문이 묻는 sizeof 를 실제로 찍어 확인한다.",
+    "append": "printf(\"%zu\\n\", sizeof(struct A));"
+  },
+  "ch04-q2": {
+    "note": "빈 for 문이라 출력이 없다. 반복 횟수를 세어 '5번' 형식으로 확인한다.",
+    "program": "#include <stdio.h>\nint main(void) {\n    int count = 0;\n    for (int i = 0; i < 5; i++) { count++; }\n    printf(\"%d번\\n\", count);\n    return 0;\n}\n"
+  },
+  "ch10/10-2#7": {
+    "note": "본문이 전제한 data.txt 를 실제로 만들어 준다.",
+    "files": {
+      "data.txt": "10 20\n"
+    }
+  },
+  "ch10/10-4#8": {
+    "note": "Student 타입, list 배열, 쓰기용 FILE* 가 조각 밖에서 정의된 것을 전제한다.",
+    "prepend": "typedef struct { char name[20]; int score; } Student;\n    Student list[3] = { {\"a\", 1}, {\"b\", 2}, {\"c\", 3} };\n    FILE *fp = fopen(\"out.bin\", \"wb\");\n    if (fp == NULL) return 1;",
+    "append": "fclose(fp);"
+  },
+  "ch10/10-5#10": {
+    "note": "본문이 전제한 '크기 100바이트 파일'을 실제로 만들어 연다.",
+    "files": {
+      "size100.bin": {
+        "size": 100,
+        "byte": "x"
+      }
+    },
+    "prepend": "FILE *fp = fopen(\"size100.bin\", \"rb\");\n    if (fp == NULL) return 1;",
+    "append": "fclose(fp);"
+  },
+  "ch10-q14": {
+    "note": "문항이 전제한 '크기 250바이트 파일'을 실제로 만들어 연다.",
+    "files": {
+      "size250.bin": {
+        "size": 250,
+        "byte": "x"
+      }
+    },
+    "prepend": "FILE *fp = fopen(\"size250.bin\", \"rb\");\n    if (fp == NULL) return 1;",
+    "append": "fclose(fp);"
+  }
+}
