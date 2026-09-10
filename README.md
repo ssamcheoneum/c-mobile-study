@@ -1,5 +1,7 @@
 # C 모바일 학습 웹앱
 
+**배포 주소 → https://ssamcheoneum.github.io/c-mobile-study/**
+
 이동 중 휴대폰으로 C언어를 학습하는 정적 웹앱. 프레임워크·번들러·npm 의존성 없이
 바닐라 HTML/CSS/JS(ES Modules)로만 만든다. 상세 명세는 [SPEC.md](SPEC.md).
 
@@ -44,10 +46,19 @@ PWA 아이콘을 다시 만들려면 `python tools/make-icons.py`.
 
 모든 경로가 상대경로(`./js/app.js`)라 서브디렉터리 배포에서도 깨지지 않는다.
 
-1. GitHub에 저장소를 만들고 이 폴더 전체를 `main` 브랜치에 푸시한다.
-2. 저장소 **Settings → Pages** 에서 Source를 **Deploy from a branch**,
-   Branch를 **main / (root)** 로 지정한다.
-3. 1~2분 뒤 `https://<사용자명>.github.io/<저장소명>/` 에서 열린다.
+배포 완료 상태다. 저장소는 `ssamcheoneum/c-mobile-study` (public),
+Pages Source는 **main / (root)**.
+
+수정한 내용을 다시 배포하려면:
+
+```bash
+git add -A
+git commit -m "내용 수정"
+git push
+```
+
+푸시하면 1~2분 뒤 자동으로 반영된다. 빌드 상태는
+저장소 **Actions** 탭 또는 **Settings → Pages** 에서 확인한다.
 
 앱 코드를 수정해 다시 배포할 때는 **`sw.js` 의 `CACHE_VERSION` 을 올린다**
 (`'v1'` → `'v2'`). 올리지 않으면 이미 설치된 기기에 예전 코드가 계속 남는다.
