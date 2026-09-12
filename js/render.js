@@ -52,15 +52,19 @@ function legacyCopy(text) {
   return ok;
 }
 
-async function copyText(text, btn) {
-  let ok = false;
+/** 클립보드에 쓴다. 보안 컨텍스트가 아니면 예전 방식으로 물러난다. */
+export async function writeClipboard(text) {
   try {
     if (navigator.clipboard && window.isSecureContext) {
       await navigator.clipboard.writeText(text);
-      ok = true;
+      return true;
     }
-  } catch { ok = false; }
-  if (!ok) ok = legacyCopy(text);           // http://<LAN IP> 처럼 보안 컨텍스트가 아닐 때
+  } catch { /* 아래 폴백 */ }
+  return legacyCopy(text);                  // http://<LAN IP> 처럼 보안 컨텍스트가 아닐 때
+}
+
+async function copyText(text, btn) {
+  const ok = await writeClipboard(text);
   btn.textContent = ok ? '복사됨' : '복사 실패';
   clearTimeout(btn._resetTimer);
   btn._resetTimer = setTimeout(() => { btn.textContent = '복사'; }, 1600);

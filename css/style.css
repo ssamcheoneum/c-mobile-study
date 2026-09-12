@@ -1341,6 +1341,69 @@ button {
   border-color: var(--accent);
 }
 
+/* ── 학습 데이터 백업 / 복원 ──────────────────────────── */
+
+.data-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.data-import {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 10px;
+  padding: 12px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+.data-import[hidden] { display: none; }
+
+.data-file {
+  width: 100%;
+  min-height: var(--tap);
+  font-size: calc(13px * var(--font-scale));
+  color: var(--ink-soft);
+}
+
+.data-paste {
+  width: 100%;
+  padding: 10px 12px;
+  background: var(--bg);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  font-family: var(--font-code);
+  font-size: calc(13px * var(--font-scale));
+  line-height: 1.5;
+  resize: vertical;
+}
+
+.data-status {
+  margin: 10px 0 0;
+  color: var(--ink-soft);
+  font-size: calc(13px * var(--font-scale));
+  line-height: 1.6;
+}
+.data-status:empty { display: none; }
+.data-status.is-error { color: var(--wrong); }
+
+.data-undo {
+  margin-top: 12px;
+  padding: 12px;
+  background: var(--accent-bg);
+  border-radius: var(--radius);
+}
+.data-undo__msg {
+  margin: 0 0 10px;
+  color: var(--accent);
+  font-size: calc(13px * var(--font-scale));
+  font-weight: 600;
+  line-height: 1.5;
+}
+
 /* ── 코드용 기본값 ────────────────────────────────────── */
 
 code, pre {

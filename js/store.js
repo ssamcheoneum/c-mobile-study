@@ -88,6 +88,89 @@ export function getSettings() {
   };
 }
 
+/* ── 내보내기 / 가져오기 (§9 "진도 데이터 JSON export/import") ──
+   §3.3 의 4개 키를 그대로 묶었다 풀 뿐이다. 키가 늘거나 값의 모양이 바뀌지 않는다. */
+
+export const EXPORT_FORMAT = 1;
+
+/** 현재 학습 데이터 전체를 하나의 객체로 묶는다. */
+export function exportAll() {
+  return {
+    app: 'cstudy',
+    formatVersion: EXPORT_FORMAT,
+    exportedAt: Date.now(),
+    data: {
+      [KEYS.progress]: read(KEYS.progress),
+      [KEYS.wrong]: read(KEYS.wrong),
+      [KEYS.queue]: read(KEYS.queue),
+      [KEYS.settings]: getSettings()
+    }
+  };
+}
+
+/** 묶음이 우리 형식인지, 값의 모양이 맞는지 검사한다. 쓰기는 하지 않는다. */
+export function inspectBundle(bundle) {
+  if (!isPlainObject(bundle)) return { ok: false, error: '내용을 읽을 수 없습니다.' };
+  if (bundle.app !== 'cstudy') return { ok: false, error: '이 앱의 백업 파일이 아닙니다.' };
+
+  const ver = Number(bundle.formatVersion);
+  if (!Number.isFinite(ver) || ver < 1) return { ok: false, error: '형식 번호가 없습니다.' };
+  if (ver > EXPORT_FORMAT) {
+    return { ok: false, error: `더 새로운 형식(v${ver})입니다. 앱을 새로고침해 주세요.` };
+  }
+  if (!isPlainObject(bundle.data)) return { ok: false, error: '데이터가 비어 있습니다.' };
+
+  const found = {};
+  for (const key of Object.values(KEYS)) {
+    const value = bundle.data[key];
+    if (value === undefined) continue;
+    if (!SHAPES[key].ok(value)) return { ok: false, error: `${key} 의 형식이 올바르지 않습니다.` };
+    found[key] = value;
+  }
+  if (!Object.keys(found).length) return { ok: false, error: '복원할 학습 데이터가 없습니다.' };
+
+  const progress = found[KEYS.progress] || {};
+  const wrong = found[KEYS.wrong] || [];
+  const queue = found[KEYS.queue] || {};
+  return {
+    ok: true,
+    values: found,
+    exportedAt: typeof bundle.exportedAt === 'number' ? bundle.exportedAt : null,
+    summary: {
+      chapters: Object.keys(progress).length,
+      wrong: wrong.filter((w) => w && w.cleared !== true).length,
+      queue: Object.keys(queue).length
+    }
+  };
+}
+
+/**
+ * 검사를 통과한 묶음으로 **덮어쓴다**. 되돌릴 수 있도록 직전 상태를 함께 돌려준다.
+ * @returns {{ok:true, summary, undo:object}|{ok:false, error:string}}
+ */
+export function importAll(bundle) {
+  const checked = inspectBundle(bundle);
+  if (!checked.ok) return checked;
+
+  const undo = exportAll(); // 덮어쓰기 직전 상태
+  for (const [key, value] of Object.entries(checked.values)) {
+    write(key, value);
+  }
+  return { ok: true, summary: checked.summary, exportedAt: checked.exportedAt, undo };
+}
+
+/** 지금 담고 있는 양(내보내기 버튼 옆에 보여줄 용도). */
+export function dataSummary() {
+  const progress = read(KEYS.progress);
+  const wrong = read(KEYS.wrong);
+  const queue = read(KEYS.queue);
+  return {
+    chapters: Object.keys(progress).length,
+    wrong: wrong.filter((w) => w && w.cleared !== true).length,
+    queue: Object.keys(queue).length
+  };
+}
+
 export function setSettings(patch) {
   const next = { ...getSettings(), ...patch };
   const safe = {

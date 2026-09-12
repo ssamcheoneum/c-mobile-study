@@ -4,7 +4,7 @@
 import * as router from './router.js';
 import * as store from './store.js';
 import { loadIndex, loadChapter, loadGlossary, loadErrors, peekChapter } from './loader.js';
-import { renderBlocks, renderInline, renderCodeBox } from './render.js';
+import { renderBlocks, renderInline, renderCodeBox, writeClipboard } from './render.js';
 import * as quiz from './quiz.js';
 import * as review from './review.js';
 
@@ -952,8 +952,184 @@ function renderSettings() {
     (v) => { store.setSettings({ fontScale: v }); applySettings(); renderRoute(currentRoute); }
   ));
 
+  wrap.append(renderDataSettings());
   return wrap;
 }
+
+/* ── 학습 데이터 백업 / 복원 (§9) ─────────────────────── */
+
+const pad2 = (n) => String(n).padStart(2, '0');
+function backupName() {
+  const d = new Date();
+  return `cstudy-backup-${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}.json`;
+}
+
+const summaryText = (s) => `단원 ${s.chapters}개 · 오답 ${s.wrong}문항 · 복습 ${s.queue}문항`;
+
+/** 공유 시트 → 파일 다운로드 → 클립보드 순으로 되는 방법을 쓴다. */
+async function shareBackup(json, name, status) {
+  const file = (() => {
+    try { return new File([json], name, { type: 'application/json' }); } catch { return null; }
+  })();
+
+  if (file && navigator.canShare && navigator.canShare({ files: [file] })) {
+    try {
+      await navigator.share({ files: [file], title: 'C 학습 백업' });
+      status.textContent = '공유했습니다.';
+      return;
+    } catch (err) {
+      if (err && err.name === 'AbortError') { status.textContent = '취소했습니다.'; return; }
+      // 공유가 막히면 아래 다운로드로 물러난다
+    }
+  }
+
+  try {
+    const url = URL.createObjectURL(new Blob([json], { type: 'application/json' }));
+    const a = el('a', { href: url, download: name });
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    status.textContent = `${name} 으로 저장했습니다.`;
+    return;
+  } catch { /* 아래 클립보드로 */ }
+
+  status.textContent = (await writeClipboard(json))
+    ? '파일로 저장할 수 없어 클립보드에 복사했습니다. 메모앱에 붙여넣어 두세요.'
+    : '내보내기에 실패했습니다.';
+}
+
+function renderDataSettings() {
+  const group = el('div', { class: 'setting' });
+  group.append(el('p', { class: 'setting__label', text: '학습 데이터' }));
+  group.append(el('p', { class: 'hint', text: `지금 저장된 내용 — ${summaryText(store.dataSummary())}` }));
+
+  const status = el('p', { class: 'data-status', role: 'status' });
+  const panel = el('div', { class: 'data-import', hidden: true });
+
+  const btnExport = el('button', {
+    class: 'btn btn--block', type: 'button', text: '내보내기 (백업)',
+    onclick: async () => {
+      status.className = 'data-status';
+      status.textContent = '준비 중…';
+      const json = JSON.stringify(store.exportAll(), null, 2);
+      await shareBackup(json, backupName(), status);
+    }
+  });
+
+  const btnImport = el('button', {
+    class: 'btn btn--block', type: 'button', text: '가져오기 (복원)',
+    onclick: () => {
+      panel.hidden = !panel.hidden;
+      btnImport.setAttribute('aria-expanded', String(!panel.hidden));
+    }
+  });
+  btnImport.setAttribute('aria-expanded', 'false');
+
+  /* 복원 패널 */
+  const fileInput = el('input', {
+    class: 'data-file', type: 'file', accept: 'application/json,.json',
+    'aria-label': '백업 파일 선택'
+  });
+  const pasteArea = el('textarea', {
+    class: 'data-paste', rows: '4', spellcheck: 'false',
+    autocapitalize: 'off', autocomplete: 'off',
+    placeholder: '백업 내용을 여기에 붙여넣어도 됩니다',
+    'aria-label': '백업 내용 붙여넣기'
+  });
+
+  const apply = (text) => {
+    status.className = 'data-status';
+    let bundle;
+    try {
+      bundle = JSON.parse(text);
+    } catch {
+      status.className = 'data-status is-error';
+      status.textContent = '내용을 읽을 수 없습니다. 백업 파일이 맞는지 확인해 주세요.';
+      return;
+    }
+
+    const checked = store.inspectBundle(bundle);
+    if (!checked.ok) {
+      status.className = 'data-status is-error';
+      status.textContent = checked.error;
+      return;
+    }
+
+    const when = checked.exportedAt ? new Date(checked.exportedAt).toLocaleString('ko-KR') : '시점 미상';
+    const ok = window.confirm(
+      `가져올 내용 (${when} 백업)\n${summaryText(checked.summary)}\n\n` +
+      `지금 저장된 내용은 덮어쓰기됩니다.\n${summaryText(store.dataSummary())}\n\n계속할까요?`
+    );
+    if (!ok) { status.textContent = '취소했습니다.'; return; }
+
+    const result = store.importAll(bundle);
+    if (!result.ok) {
+      status.className = 'data-status is-error';
+      status.textContent = result.error;
+      return;
+    }
+    lastUndo = result.undo;
+    applySettings();   // 가져온 테마·글자 크기를 바로 반영한다
+    renderRoute(currentRoute);
+    window.scrollTo(0, document.documentElement.scrollHeight);
+  };
+
+  fileInput.addEventListener('change', () => {
+    const f = fileInput.files && fileInput.files[0];
+    if (!f) return;
+    const reader = new FileReader();
+    reader.onload = () => apply(String(reader.result));
+    reader.onerror = () => {
+      status.className = 'data-status is-error';
+      status.textContent = '파일을 읽지 못했습니다.';
+    };
+    reader.readAsText(f);
+  });
+
+  panel.append(
+    fileInput,
+    pasteArea,
+    el('button', {
+      class: 'btn btn--block', type: 'button', text: '붙여넣은 내용 적용',
+      onclick: () => {
+        const t = pasteArea.value.trim();
+        if (!t) {
+          status.className = 'data-status is-error';
+          status.textContent = '붙여넣은 내용이 없습니다.';
+          return;
+        }
+        apply(t);
+      }
+    })
+  );
+
+  const actions = el('div', { class: 'data-actions' }, btnExport, btnImport);
+  group.append(actions, panel, status);
+
+  // 방금 덮어쓴 직후라면 되돌릴 기회를 준다(새로고침하면 사라진다).
+  if (lastUndo) {
+    const undone = el('div', { class: 'data-undo' },
+      el('p', { class: 'data-undo__msg', text: '복원했습니다. 잘못 가져왔다면 되돌릴 수 있습니다.' }),
+      el('button', {
+        class: 'btn btn--block', type: 'button', text: '직전 상태로 되돌리기',
+        onclick: () => {
+          const back = lastUndo;
+          lastUndo = null;
+          store.importAll(back);
+          applySettings();
+          renderRoute(currentRoute);
+          window.scrollTo(0, document.documentElement.scrollHeight);
+        }
+      })
+    );
+    group.append(undone);
+  }
+  return group;
+}
+
+// 가져오기 직전 상태. 메모리에만 둔다(§3.3 키를 늘리지 않기 위해).
+let lastUndo = null;
 
 const TAB_STUBS = {};
 
