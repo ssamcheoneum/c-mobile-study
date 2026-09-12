@@ -121,6 +121,18 @@ git push
 > ([WebKit 공지](https://webkit.org/blog/10218/full-third-party-cookie-blocking-and-more/)).
 > 다만 기기 교체·앱 삭제·브라우저 데이터 지우기로는 사라지므로 가끔 백업해 두는 편이 좋다.
 
+## 보안 · 접근성 기준
+
+- **CSP** — 외부 리소스를 하나도 쓰지 않으므로 `default-src 'self'` 로 전부 잠갔다.
+  GitHub Pages 는 HTTP 헤더를 붙일 수 없어 `index.html` 의 `<meta http-equiv>` 로 선언한다
+  (meta 에서는 `frame-ancestors`·`sandbox` 가 무시되므로 넣지 않았다).
+  스크립트·스타일은 전부 외부 파일이고, 인라인 `style` 속성도 쓰지 않는다.
+  값을 바꾸는 곳은 `element.style` / `setProperty` 같은 CSSOM 이라 CSP 에 걸리지 않는다.
+- **XSS** — `innerHTML` · `eval` · 외부 리소스 0건. 모든 콘텐츠는 `textContent` 로만 들어간다.
+- **색 대비** — 본문·보조·강조·코드 전부 WCAG AA(4.5:1) 통과.
+  입력칸과 버튼의 경계는 `--line-strong` 으로 배경 대비 3:1 이상을 지킨다(WCAG 1.4.11).
+  장식용 구분선은 `--line` 을 그대로 쓴다.
+
 ## 캐시 전략
 
 | 대상 | 정책 | 이유 |

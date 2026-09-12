@@ -5,6 +5,21 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="color-scheme" content="light dark">
   <meta name="theme-color" content="#2E6F52">
+  <!-- 외부 리소스를 하나도 쓰지 않으므로 전부 self 로 잠근다.
+       GitHub Pages 는 HTTP 헤더를 붙일 수 없어 meta 로 선언한다
+       (meta 에서는 frame-ancestors·sandbox 가 무시되므로 넣지 않았다). -->
+  <meta http-equiv="Content-Security-Policy" content="
+    default-src 'self';
+    script-src 'self';
+    style-src 'self';
+    img-src 'self';
+    font-src 'self';
+    connect-src 'self';
+    manifest-src 'self';
+    worker-src 'self';
+    base-uri 'none';
+    object-src 'none';
+    form-action 'none'">
   <title>C 학습</title>
   <meta name="description" content="이동 중에 휴대폰으로 C언어를 학습하는 도구.">
   <meta name="apple-mobile-web-app-capable" content="yes">

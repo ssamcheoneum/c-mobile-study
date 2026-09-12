@@ -153,8 +153,19 @@ export function importAll(bundle) {
   if (!checked.ok) return checked;
 
   const undo = exportAll(); // 덮어쓰기 직전 상태
+  const written = [];
+
   for (const [key, value] of Object.entries(checked.values)) {
-    write(key, value);
+    if (write(key, value)) { written.push(key); continue; }
+
+    // 일부만 써지면 진도와 오답이 어긋난 상태로 남는다. 되돌리고 실패를 알린다.
+    // (프라이빗 브라우징·용량 초과처럼 저장 자체가 막힌 경우)
+    for (const key2 of written) write(key2, undo.data[key2]);
+    return {
+      ok: false,
+      error: '기기에 저장할 수 없어 복원을 취소했습니다. ' +
+             '프라이빗 브라우징 중이거나 저장 공간이 부족한지 확인해 주세요.'
+    };
   }
   return { ok: true, summary: checked.summary, exportedAt: checked.exportedAt, undo };
 }

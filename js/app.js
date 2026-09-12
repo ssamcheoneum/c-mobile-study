@@ -1114,9 +1114,14 @@ function renderDataSettings() {
       el('button', {
         class: 'btn btn--block', type: 'button', text: '직전 상태로 되돌리기',
         onclick: () => {
-          const back = lastUndo;
+          const result = store.importAll(lastUndo);
+          if (!result.ok) {
+            // 되돌리기도 실패했다면 기회를 없애지 않는다.
+            status.className = 'data-status is-error';
+            status.textContent = result.error;
+            return;
+          }
           lastUndo = null;
-          store.importAll(back);
           applySettings();
           renderRoute(currentRoute);
           window.scrollTo(0, document.documentElement.scrollHeight);

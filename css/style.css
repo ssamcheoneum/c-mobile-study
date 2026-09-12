@@ -8,7 +8,9 @@
   --surface:   #FFFFFF;
   --ink:       #1E2A24;
   --ink-soft:  #5A6660;
-  --line:      #DDE2DC;
+  --line:      #DDE2DC;   /* 카드·구분선 등 장식용 */
+  --line-strong: #808D87; /* 입력칸·버튼 등 조작 대상의 경계.
+                             배경 대비 3:1 이상 (WCAG 1.4.11) */
   --accent:    #2E6F52;
   --accent-on: #FFFFFF;
   --accent-bg: #E4EEE8;   /* 강조색의 옅은 배경 */
@@ -38,6 +40,7 @@
     --ink:       #E7EDE9;
     --ink-soft:  #9AA7A0;
     --line:      #2E3833;
+    --line-strong: #66736C;
     --accent:    #6FBF95;
     --accent-on: #10201A;
     --accent-bg: #22332B;
@@ -53,6 +56,7 @@
   --ink:       #E7EDE9;
   --ink-soft:  #9AA7A0;
   --line:      #2E3833;
+  --line-strong: #66736C;
   --accent:    #6FBF95;
   --accent-on: #10201A;
   --accent-bg: #22332B;
@@ -338,7 +342,7 @@ button {
   justify-content: center;
   min-height: var(--tap);
   padding: 0 18px;
-  border: 1px solid var(--line);
+  border: 1px solid var(--line-strong);
   border-radius: 10px;
   font-size: calc(15px * var(--font-scale));
   font-weight: 600;
@@ -789,7 +793,7 @@ button {
   padding: 10px 12px;
   background: var(--bg);
   color: var(--ink);
-  border: 1px solid var(--line);
+  border: 1px solid var(--line-strong);
   border-radius: 10px;
   font-family: var(--font-code);
   font-size: calc(15px * var(--font-scale));
@@ -884,7 +888,7 @@ button {
   padding: 11px 13px;
   text-align: left;
   background: var(--surface);
-  border: 1px solid var(--line);
+  border: 1px solid var(--line-strong);
   border-radius: 10px;
   font-size: calc(15px * var(--font-scale));
   line-height: 1.5;
@@ -941,7 +945,7 @@ button {
   gap: 2px;
   padding: 16px 8px;
   background: var(--surface);
-  border: 1px solid var(--line);
+  border: 1px solid var(--line-strong);
   border-radius: var(--radius);
 }
 .q-oxbtn__mark { font-size: 26px; font-weight: 700; line-height: 1.1; }
@@ -961,7 +965,7 @@ button {
   padding: 10px 12px;
   background: var(--surface);
   color: var(--ink);
-  border: 1px solid var(--line);
+  border: 1px solid var(--line-strong);
   border-radius: 10px;
   font-family: var(--font-code);
   font-size: calc(16px * var(--font-scale));
@@ -1261,7 +1265,7 @@ button {
   padding: 10px 14px;
   background: var(--surface);
   color: var(--ink);
-  border: 1px solid var(--line);
+  border: 1px solid var(--line-strong);
   border-radius: 10px;
   font-size: calc(16px * var(--font-scale));
 }
@@ -1330,7 +1334,7 @@ button {
   min-height: var(--tap);
   padding: 0 8px;
   background: var(--surface);
-  border: 1px solid var(--line);
+  border: 1px solid var(--line-strong);
   border-radius: 10px;
   font-size: calc(14px * var(--font-scale));
   font-weight: 600;
@@ -1373,7 +1377,7 @@ button {
   padding: 10px 12px;
   background: var(--bg);
   color: var(--ink);
-  border: 1px solid var(--line);
+  border: 1px solid var(--line-strong);
   border-radius: 10px;
   font-family: var(--font-code);
   font-size: calc(13px * var(--font-scale));
