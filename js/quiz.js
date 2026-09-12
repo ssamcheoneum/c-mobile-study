@@ -120,8 +120,11 @@ export function submit(session, response) {
     // 오답은 어느 세션에서든 오답노트에 남기고 다음 날 다시 나오게 한다 (§4.3-③)
     review.registerWrong(chapterOf(session, q), q.id);
   } else if (session.mode === 'review') {
-    // 간격 반복 진행은 복습 세션에서만 적용한다 (§4.4)
+    // 간격 진행은 복습 세션에서만 적용한다 (§4.4)
     review.registerCorrect(q.id);
+  } else {
+    // 단원 퀴즈에서 처음 만난 문항을 맞혔다 → 7일 뒤 확인용으로 큐에 넣는다 (§4.4 진입 규칙)
+    review.registerFirstCorrect(q.id);
   }
   return { correct, question: q };
 }

@@ -6,7 +6,7 @@
 // ⚠ 앱 코드(js/css/html)를 고쳤으면 반드시 CACHE_VERSION 을 올린다.
 //    올리지 않으면 캐시 우선 정책 때문에 기기에 예전 코드가 계속 남는다.
 
-const CACHE_VERSION = 'v2';
+const CACHE_VERSION = 'v3';
 const CACHE_NAME = `cstudy-${CACHE_VERSION}`;
 
 // 서브디렉터리 배포(GitHub Pages)에서도 깨지지 않도록 전부 상대 경로.
